@@ -1,4 +1,4 @@
-# Lumen Protocol
+# Lumen Layer
 
 > Clarity before capital.
 
@@ -31,8 +31,8 @@ Built on Jito BAM's Trusted Execution Environment attestations, Lumen standardiz
 
 ## Getting started
 
-git clone https://github.com/SimplyKairos/lumen-protocol
-cd lumen-protocol
+git clone https://github.com/SimplyKairos/lumen-layer
+cd lumen-layer
 
 Frontend
 cd apps/web && npm install && npm run dev
