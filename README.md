@@ -16,11 +16,15 @@ Built on Jito BAM's Trusted Execution Environment attestations, Lumen standardiz
 
 ## How it works
 
-1. Transaction is submitted through Jito BAM block engine
-2. Lumen fetches the TEE attestation digest for the bundle
-3. SHA-256(txSignature || bamAttestationDigest) is computed
+1. Transaction is submitted through Jito block engine as a bundle
+2. Lumen fetches bundle data via `getBundleStatuses` — bundle ID, slot, confirmation status
+3. `SHA-256(txSignature || bundleId || slot)` is computed
 4. Hash is written on-chain as a Solana memo — immutable and permissionless
 5. Anyone can replay and verify via the public verifier
+
+**Attestation levels:**
+- `BUNDLE_VERIFIED` — confirmed via Jito bundle data, on-chain anchored
+- `BAM_ATTESTED` — full TEE attestation digest bound to receipt (upgrading when BAM API is available)
 
 ## Stack
 
