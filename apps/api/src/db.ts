@@ -1,0 +1,98 @@
+import Database from 'better-sqlite3'
+import path from 'path'
+
+const DB_PATH = path.join(__dirname, '../../data/lumen.db')
+
+export const db = new Database(DB_PATH)
+
+// Enable WAL mode for better performance
+db.pragma('journal_mode = WAL')
+
+// RECEIPTS TABLE
+// Every trade/transaction that gets stamped
+db.exec(`
+  CREATE TABLE IF NOT EXISTS receipts (
+    id TEXT PRIMARY KEY,
+    tx_signature TEXT NOT NULL UNIQUE,
+    bundle_id TEXT,
+    slot INTEGER,
+    confirmation_status TEXT,
+    receipt_hash TEXT NOT NULL,
+    on_chain_memo TEXT,
+    attestation_level TEXT DEFAULT 'BUNDLE_VERIFIED',
+    launch_id TEXT,
+    wallet_address TEXT,
+    verified INTEGER DEFAULT 0,
+    created_at INTEGER NOT NULL
+  )
+`)
+
+// LAUNCHES TABLE
+// Every token launch created through Lumen
+db.exec(`
+  CREATE TABLE IF NOT EXISTS launches (
+    id TEXT PRIMARY KEY,
+    token_name TEXT NOT NULL,
+    token_symbol TEXT NOT NULL,
+    token_mint TEXT,
+    creator_wallet TEXT NOT NULL,
+    description TEXT,
+    image_url TEXT,
+    liquidity_locked INTEGER DEFAULT 0,
+    lock_duration_days INTEGER DEFAULT 0,
+    max_wallet_cap REAL,
+    launch_window_seconds INTEGER DEFAULT 60,
+    status TEXT DEFAULT 'pending',
+    bundler_alerts INTEGER DEFAULT 0,
+    holder_count INTEGER DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    launched_at INTEGER
+  )
+`)
+
+// CREATORS TABLE
+// Creator profiles and reputation
+db.exec(`
+  CREATE TABLE IF NOT EXISTS creators (
+    wallet_address TEXT PRIMARY KEY,
+    display_name TEXT,
+    twitter_handle TEXT,
+    verified INTEGER DEFAULT 0,
+    total_launches INTEGER DEFAULT 0,
+    successful_launches INTEGER DEFAULT 0,
+    reputation_score REAL DEFAULT 0,
+    liquidity_rug_count INTEGER DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    last_active INTEGER
+  )
+`)
+
+// USERS TABLE
+// Traders who use the platform
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    wallet_address TEXT PRIMARY KEY,
+    total_trades INTEGER DEFAULT 0,
+    total_receipts INTEGER DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    last_active INTEGER
+  )
+`)
+
+// BUNDLER ALERTS TABLE
+// Log of detected bundling activity on launches
+db.exec(`
+  CREATE TABLE IF NOT EXISTS bundler_alerts (
+    id TEXT PRIMARY KEY,
+    launch_id TEXT NOT NULL,
+    wallet_address TEXT NOT NULL,
+    bundle_id TEXT,
+    slot INTEGER,
+    alert_type TEXT,
+    created_at INTEGER NOT NULL
+  )
+`)
+
+console.log('Database initialized successfully')
+
+export default db
