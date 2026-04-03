@@ -1,0 +1,16 @@
+{
+  "version": "0.1.0",
+  "name": "LumenReceipt",
+  "description": "Canonical execution fairness receipt for BAM-routed Solana transactions",
+  "fields": {
+    "receiptId": "string",
+    "txSignature": "string",
+    "slot": "number",
+    "bundleId": "string",
+    "bamAttestationDigest": "string",
+    "receiptHash": "string",
+    "onChainMemo": "string",
+    "timestamp": "number",
+    "verified": "boolean"
+  }
+}
