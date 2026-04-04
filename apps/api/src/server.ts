@@ -1,3 +1,7 @@
+import { db } from './db'
+import { buildReceipt } from './receipt'
+import { verifyReceipt } from './verifier'
+import 'dotenv/config'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 
@@ -15,17 +19,62 @@ server.get('/health', async () => {
 // PROTOCOL ROUTES
 // POST /api/v1/stamp — submit a transaction for receipt generation
 server.post('/api/v1/stamp', async (request, reply) => {
-  return reply.code(501).send({ error: 'not implemented yet' })
+  const { txSignature, bundleId, slot, confirmationStatus, walletAddress } = request.body as any
+
+  if (!txSignature || !bundleId || !slot) {
+    return reply.code(400).send({ error: 'txSignature, bundleId and slot are required' })
+  }
+
+  try {
+    const receipt = buildReceipt(txSignature, bundleId, slot, confirmationStatus || 'confirmed', walletAddress)
+
+    db.prepare(`
+      INSERT INTO receipts (id, tx_signature, bundle_id, slot, confirmation_status, receipt_hash, on_chain_memo, attestation_level, wallet_address, verified, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      receipt.receiptId,
+      receipt.txSignature,
+      receipt.bundleId,
+      receipt.slot,
+      receipt.confirmationStatus,
+      receipt.receiptHash,
+      receipt.onChainMemo,
+      receipt.attestationLevel,
+      receipt.walletAddress,
+      receipt.verified ? 1 : 0,
+      receipt.createdAt
+    )
+
+    return reply.code(201).send(receipt)
+  } catch (err) {
+    server.log.error(err)
+    return reply.code(500).send({ error: 'Failed to create receipt' })
+  }
 })
 
 // GET /api/v1/verify/:receiptId — verify a receipt
 server.get('/api/v1/verify/:receiptId', async (request, reply) => {
-  return reply.code(501).send({ error: 'not implemented yet' })
+  const { receiptId } = request.params as any
+
+  try {
+    const result = await verifyReceipt(receiptId)
+    if (!result) return reply.code(404).send({ error: 'Receipt not found' })
+    return reply.send(result)
+  } catch (err) {
+    server.log.error(err)
+    return reply.code(500).send({ error: 'Verification failed' })
+  }
 })
 
 // GET /api/v1/receipts — list recent receipts
 server.get('/api/v1/receipts', async (request, reply) => {
-  return reply.code(501).send({ error: 'not implemented yet' })
+  try {
+    const receipts = db.prepare('SELECT * FROM receipts ORDER BY created_at DESC LIMIT 50').all()
+    return reply.send({ receipts, count: receipts.length })
+  } catch (err) {
+    server.log.error(err)
+    return reply.code(500).send({ error: 'Failed to fetch receipts' })
+  }
 })
 
 // LAUNCHPAD ROUTES
