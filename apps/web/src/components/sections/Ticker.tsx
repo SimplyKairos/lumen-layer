@@ -1,3 +1,5 @@
+import { getRevealStyle, useScrollReveal } from './ScrollReveal'
+
 const items = [
   'TEE-verified attestations',
   'On-chain memo anchoring',
@@ -12,14 +14,19 @@ const items = [
 ]
 
 export default function Ticker() {
+  const { ref, visible, reduceMotion } = useScrollReveal<HTMLDivElement>()
   const doubled = [...items, ...items]
 
   return (
-    <div style={{
-      borderBottom: '0.5px solid rgba(255,255,255,0.06)',
-      overflow: 'hidden',
-      background: 'rgba(255,255,255,0.01)',
-    }}>
+    <div
+      ref={ref}
+      style={{
+        borderBottom: '0.5px solid rgba(255,255,255,0.06)',
+        overflow: 'hidden',
+        background: 'rgba(255,255,255,0.01)',
+        ...getRevealStyle({ visible, reduceMotion }),
+      }}
+    >
       <div style={{
         display: 'flex',
         animation: 'tickerScroll 26s linear infinite',

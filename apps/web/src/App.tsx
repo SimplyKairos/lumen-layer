@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import Navbar from './components/sections/Navbar'
 import Hero from './components/sections/Hero'
 import Ticker from './components/sections/Ticker'
-import Stats from './components/sections/Stats'
 import WhyWeBuiltThis from './components/sections/WhyWeBuiltThis'
 import HowItWorks from './components/sections/HowItWorks'
 import CTA from './components/sections/CTA'
@@ -36,7 +35,6 @@ export default function App() {
         <Navbar />
         <Hero />
         <Ticker />
-        <Stats />
         <WhyWeBuiltThis />
         <HowItWorks />
         <CTA />

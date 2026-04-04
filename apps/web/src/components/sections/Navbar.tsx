@@ -13,6 +13,35 @@ export default function Navbar() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  const goTo = (path: string) => {
+    window.location.assign(path)
+  }
+
+  const openExternal = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
+  const handleNavClick = (label: string) => {
+    if (label === 'Protocol') {
+      scrollTo('how-it-works')
+      return
+    }
+
+    if (label === 'Verify') {
+      goTo('/verify')
+      return
+    }
+
+    if (label === 'Docs') {
+      openExternal('https://github.com/SimplyKairos/lumen-layer')
+      return
+    }
+
+    if (label === 'Receipts') {
+      goTo('/receipts')
+    }
+  }
+
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
@@ -39,14 +68,14 @@ export default function Navbar() {
         backdropFilter: 'blur(12px)',
       }}>
         {[
-          { label: 'How it works', id: 'how-it-works' },
+          { label: 'Protocol', id: 'how-it-works' },
           { label: 'Verify', id: 'verify' },
           { label: 'Docs', id: 'docs' },
-          { label: 'Explorer', id: 'explorer' },
+          { label: 'Receipts', id: 'explorer' },
         ].map(({ label, id }) => (
           <button
             key={id}
-            onClick={() => scrollTo(id)}
+            onClick={() => handleNavClick(label)}
             style={{
               fontFamily: "'Outfit', sans-serif",
               fontSize: '13px',

@@ -1,26 +1,27 @@
 import layers from '../../assets/Layers.svg'
+import { getRevealStyle, useScrollReveal } from './ScrollReveal'
 
 const steps = [
   {
     idx: '01',
     title: 'Bundle ingestion via Jito block engine',
-    desc: 'Your transaction is submitted as a Jito bundle. The BAM node — running inside an AMD SEV-SNP Trusted Execution Environment — privately sequences and simulates the bundle, producing a cryptographic commitment to the exact ordering logic applied. This attestation is hardware-backed and cannot be forged.',
+    desc: 'Your transaction is submitted as a Jito bundle. Lumen captures the bundle-aware execution context around that submission so the resulting receipt can be checked against publicly available bundle-status data rather than opaque builder claims.',
     code: `POST /api/v1/stamp
-{ txSignature, bundleId, slot }
-→ bundle ingested via Jito block engine`,
+{ txSignature, bundleId }
+→ bundle-aware execution context recorded`,
   },
   {
     idx: '02',
     title: 'Receipt construction and on-chain anchoring',
     desc: 'Lumen fetches bundle status via getBundleStatuses — extracting bundleId, slot, and confirmationStatus. We compute SHA-256(txSignature ‖ bundleId ‖ slot) and write the resulting digest as a Solana memo transaction. The receipt is now immutable, permissionless, and permanently anchored to canonical chain state.',
-    code: `sha256(txSig ‖ bundleId ‖ slot)
-→ receiptHash: a3f8c2...e91b4d
-→ memo: anchored on-chain ✓`,
+    code: `getBundleStatuses(bundleId)
+→ { bundleId, slot, confirmationStatus }
+→ sha256(txSignature ‖ bundleId ‖ slot)`,
   },
   {
     idx: '03',
-    title: 'Trustless public verification',
-    desc: 'Any observer can submit a receiptId to the Lumen verifier. We recompute the hash against live chain data, confirm it matches the on-chain memo, and return a verification response. No trust in Lumen is required at any point. The proof is self-contained and replayable forever.',
+    title: 'Public verification',
+    desc: 'Any observer can submit a receiptId to the Lumen verifier. We recompute the hash, confirm it matches the anchored receipt data, and return a public verification response with attestationLevel set to BUNDLE_VERIFIED. No private BAM digest is required to replay the claim.',
     code: `GET /api/v1/verify/:receiptId
 → { verified: true,
     attestationLevel: "BUNDLE_VERIFIED",
@@ -29,6 +30,8 @@ const steps = [
 ]
 
 export default function HowItWorks() {
+  const { ref, visible, reduceMotion } = useScrollReveal<HTMLDivElement>()
+
   return (
     <section id="how-it-works" style={{ padding: '80px 46px', position: 'relative', overflow: 'hidden' }}>
 
@@ -48,7 +51,14 @@ export default function HowItWorks() {
         }}
       />
 
-      <div className="fade-up" style={{ position: 'relative', zIndex: 2 }}>
+      <div
+        ref={ref}
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          ...getRevealStyle({ visible, reduceMotion }),
+        }}
+      >
         {/* Tag */}
         <p style={{
           fontFamily: "'DM Mono', monospace",
@@ -86,6 +96,14 @@ export default function HowItWorks() {
               padding: '36px 0',
               borderBottom: i < steps.length - 1 ? '0.5px solid rgba(255,255,255,0.06)' : 'none',
               alignItems: 'start',
+              ...getRevealStyle({
+                visible,
+                reduceMotion,
+                delay: i * 100,
+                duration: 680,
+                translateY: 18,
+                blur: 4,
+              }),
             }}>
               {/* Index circle */}
               <div style={{

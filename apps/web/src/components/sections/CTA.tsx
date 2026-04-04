@@ -1,11 +1,19 @@
+import { getRevealStyle, useScrollReveal } from './ScrollReveal'
+
 export default function CTA() {
+  const { ref, visible, reduceMotion } = useScrollReveal<HTMLElement>()
+
   return (
-    <section style={{
-      padding: '80px 46px',
-      textAlign: 'center',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
+    <section
+      ref={ref}
+      style={{
+        padding: '80px 46px',
+        textAlign: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+        ...getRevealStyle({ visible, reduceMotion }),
+      }}
+    >
       {/* Glow */}
       <div style={{
         position: 'absolute',
@@ -29,7 +37,7 @@ export default function CTA() {
         position: 'relative',
         zIndex: 2,
       }}>
-        The fairness standard for Solana
+        Open receipt standard
       </p>
 
       <h2 style={{
@@ -43,7 +51,7 @@ export default function CTA() {
         position: 'relative',
         zIndex: 2,
       }}>
-        Prove every execution.
+        Make execution verifiable.
       </h2>
 
       <p style={{
@@ -55,7 +63,7 @@ export default function CTA() {
         position: 'relative',
         zIndex: 2,
       }}>
-        The first launchpad where fairness is enforced, not promised.
+        An open verification layer for Solana that turns bundle execution context into portable, replayable receipts.
       </p>
 
       <p style={{
@@ -85,7 +93,7 @@ export default function CTA() {
           boxShadow: '0 0 50px rgba(27,79,216,0.4), inset 0 1px 0 rgba(255,255,255,0.15)',
           transition: 'all 0.2s',
         }}>
-          Launch App
+          Launchpad
         </button>
         <button style={{
           fontFamily: "'Outfit', sans-serif",
@@ -100,7 +108,7 @@ export default function CTA() {
           cursor: 'pointer',
           transition: 'all 0.2s',
         }}>
-          Embed in Your Wallet →
+          Integrate Lumen →
         </button>
       </div>
     </section>

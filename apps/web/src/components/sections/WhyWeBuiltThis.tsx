@@ -1,15 +1,16 @@
 import glassOrb from '../../assets/GlassOrb.svg'
+import { getRevealStyle, useScrollReveal } from './ScrollReveal'
 
 const cards = [
   {
     num: 'Problem',
     title: 'Block builders are black boxes',
-    desc: 'No trader can prove how their transaction was ordered or whether they were front-run. The block engine decides everything with zero accountability to the end user.',
+    desc: 'No trader can independently verify how their transaction was ordered or whether it was bundled against them. The block engine decides everything with zero accountability to the end user.',
   },
   {
     num: 'Primitive',
-    title: 'BAM provides the attestation substrate',
-    desc: "Jito BAM's TEE-backed attestations produce a cryptographic digest per bundle — a signed record of what the block engine committed to. The proof exists.",
+    title: 'BAM provides the execution-trust primitive',
+    desc: "Jito BAM moves Solana toward attestable execution. It establishes the underlying trust direction for bundle-aware execution, even though public per-bundle BAM digests are not what Lumen exposes today.",
   },
   {
     num: 'Gap',
@@ -18,14 +19,16 @@ const cards = [
   },
   {
     num: 'Solution',
-    title: 'Lumen is that layer',
-    desc: 'We bind tx signatures to BAM bundle data, anchor the hash on-chain via Solana memo, and expose a public verifier and open schema. Any platform can integrate in one line.',
+    title: 'Lumen is that receipt layer',
+    desc: 'We bind tx signatures to publicly available bundle execution context, anchor the hash on-chain via Solana memo, and expose a public verifier and open schema that platforms can replay independently.',
   },
 ]
 
 export default function WhyWeBuiltThis() {
+  const { ref, visible, reduceMotion } = useScrollReveal<HTMLDivElement>()
+
   return (
-    <section id="why" style={{ padding: '80px px', position: 'relative', overflow: 'hidden' }}>
+    <section id="why" style={{ padding: '80px 46px', position: 'relative', overflow: 'hidden' }}>
 
       {/* Glass orb — large, left side decorative */}
       <img
@@ -43,7 +46,14 @@ export default function WhyWeBuiltThis() {
         }}
       />
 
-      <div style={{ position: 'relative', zIndex: 2 }}>
+      <div
+        ref={ref}
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          ...getRevealStyle({ visible, reduceMotion }),
+        }}
+      >
         {/* Tag */}
         <p style={{
           fontFamily: "'DM Mono', monospace",
@@ -99,6 +109,14 @@ export default function WhyWeBuiltThis() {
               backdropFilter: 'blur(40px)',
               WebkitBackdropFilter: 'blur(40px)',
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 40px rgba(0,0,0,0.3)',
+              ...getRevealStyle({
+                visible,
+                reduceMotion,
+                delay: i * 100,
+                duration: 680,
+                translateY: 18,
+                blur: 4,
+              }),
             }}>
               <p style={{
                 fontFamily: "'DM Mono', monospace",

@@ -33,6 +33,14 @@ export default function Hero() {
     return () => window.removeEventListener('mousemove', onMove)
   }, [])
 
+  const goTo = (path: string) => {
+    window.location.assign(path)
+  }
+
+  const openExternal = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
   return (
    <section id="hero" style={{
       minHeight: '100vh',
@@ -68,24 +76,19 @@ export default function Hero() {
       }} />
 
       {/* Left content */}
-<div style={{ maxWidth: '640px', position: 'relative', zIndex: 2 }}>
+<div style={{ maxWidth: '900px', position: 'relative', zIndex: 2, transform: 'translateY(-90px)',}}>
         {/* Headline */}
         <h1 style={{
           fontFamily: "'Outfit', sans-serif",
-          fontSize: 'clamp(56px, 6.5vw, 88px)',
+          fontSize: 'clamp(50px, 5.5vw, 75px)',
           fontWeight: 800,
           lineHeight: 1.0,
           letterSpacing: '-2.5px',
           color: '#fff',
-          marginBottom: '22px',
+          marginBottom: '24px',
         }}>
           Execution fairness,<br />
-          <span style={{
-           color: 'rgb(255, 255, 255)',
-          }}>
-            cryptographically
-          </span>
-          <br />proven.
+          verified on-chain.
         </h1>
 
         {/* Subline */}
@@ -98,20 +101,19 @@ export default function Hero() {
           marginBottom: '16px',
           maxWidth: '440px',
         }}>
-          Every trade on Lumen is verifiable. Every launch is enforceable. No trust required.
+        Lumen is the open receipt standard for Solana. Every stamped transaction binds execution to bundle context and anchors a replayable proof on-chain.
         </p>
 
-        {/* Slogan */}
+        {/* Proof-Strip */}
         <p style={{
           fontFamily: "'DM Mono', monospace",
-          fontSize: '15px',
+          fontSize: '12px',
           letterSpacing: '4px',
           textTransform: 'uppercase',
           color: 'rgb(255, 255, 255)',
           marginBottom: '44px',
         }}>
-          Clarity before capital.
-        </p>
+Open schema · Bundle-aware · On-chain anchored · Public verifiable        </p>
 
         {/* Buttons */}
         <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
@@ -138,6 +140,7 @@ export default function Hero() {
               e.currentTarget.style.background = '#1b4fd8'
               e.currentTarget.style.boxShadow = '0 0 40px rgba(27,79,216,0.35), inset 0 1px 0 rgba(255,255,255,0.15)'
             }}
+            onClick={() => goTo('/verify')}
           >
             Verify a Trade
           </button>
@@ -164,6 +167,7 @@ export default function Hero() {
               e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
               e.currentTarget.style.color = 'rgba(255,255,255,0.6)'
             }}
+            onClick={() => openExternal('https://github.com/SimplyKairos/lumen-layer')}
           >
             Read the Docs →
           </button>
@@ -212,7 +216,7 @@ export default function Hero() {
         zIndex: 0,
       }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse, rgba(27,79,216,0.25) 0%, rgba(10,30,100,0.1) 45%, transparent 70%)', filter: 'blur(60px)', borderRadius: '50%' }} />
-        <img ref={objRef} src={object3D} alt="" style={{ width: '860px', height: '860px', objectFit: 'contain', filter: 'drop-shadow(0 0 120px rgba(27,79,216,0.7)) drop-shadow(0 0 40px rgba(27,79,216,0.4))', opacity: 0.9, transition: 'margin 0.15s ease-out' }} />
+        <img ref={objRef} src={object3D} alt="" style={{ width: '860px', height: '860px', objectFit: 'contain', filter: 'drop-shadow(0 0 120px rgba(27,79,216,0.7)) drop-shadow(0 0 40px rgba(27,79,216,0.4))', opacity: 0.5, transition: 'margin 0.15s ease-out' }} />
       </div>
 
       {/* Gradient overlays for text readability */}

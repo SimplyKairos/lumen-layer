@@ -1,11 +1,23 @@
 import LumenLogo from '../../assets/LumenLogo.svg'
+import { getRevealStyle, useScrollReveal } from './ScrollReveal'
 
 export default function Footer() {
+  const { ref, visible, reduceMotion } = useScrollReveal<HTMLElement>()
+
+  const scrollToProtocol = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
-    <footer style={{
-      borderTop: '0.5px solid rgba(255,255,255,0.06)',
-      padding: '48px 60px 40px',
-    }}>
+    <footer
+      ref={ref}
+      style={{
+        borderTop: '0.5px solid rgba(255,255,255,0.06)',
+        padding: '48px 60px 40px',
+        ...getRevealStyle({ visible, reduceMotion }),
+      }}
+    >
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -27,8 +39,20 @@ export default function Footer() {
 
         {/* Links */}
         <div style={{ display: 'flex', gap: '36px' }}>
-          {['How it works', 'Verify', 'Docs', 'GitHub'].map(link => (
-            <a key={link} href="#" style={{
+          {['Protocol', 'Verify', 'GitHub'].map(link => (
+            <a
+              key={link}
+              href={
+                link === 'Verify'
+                  ? '/verify'
+                  : link === 'GitHub'
+                    ? 'https://github.com/SimplyKairos/lumen-layer'
+                    : '#how-it-works'
+              }
+              target={link === 'GitHub' ? '_blank' : undefined}
+              rel={link === 'GitHub' ? 'noopener noreferrer' : undefined}
+              onClick={link === 'Protocol' ? scrollToProtocol : undefined}
+              style={{
               fontFamily: "'Outfit', sans-serif",
               fontSize: '13px',
               fontWeight: 400,

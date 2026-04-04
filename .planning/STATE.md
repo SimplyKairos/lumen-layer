@@ -63,3 +63,20 @@ None yet.
 Last session: 2026-04-04 22:36
 Stopped at: Phase 1 planning complete
 Resume file: .planning/phases/01-canonical-receipt-pipeline/01-01-PLAN.md
+
+## Known Constraints
+
+### Jito BAM Attestation Access
+Full TEE attestation digests from Jito BAM are not publicly available via API yet. 
+The BAM SDK does not expose per-bundle attestation data directly.
+Current workaround: use getBundleStatuses which returns bundleId, slot, and confirmationStatus.
+Receipt attestation level is BUNDLE_VERIFIED not BAM_ATTESTED.
+Upgrade path: if Jito responds to outreach (contact@jito.wtf), receipts automatically upgrade to BAM_ATTESTED level.
+This is known and intentional — not a bug.
+
+## Messaging Guidelines
+Say "execution context" not "proof you weren't front-run"
+Say "BUNDLE_VERIFIED" explicitly, never imply full TEE proof
+Say "designed for upgrade path" not "automatically upgrades"
+Say "most launchpads ask you to trust fairness claims" not "pump.fun lies. Never name a specific launchpad"
+Say "portable execution record" not "bank statement"

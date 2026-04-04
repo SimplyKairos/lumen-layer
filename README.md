@@ -26,6 +26,16 @@ Built on Jito BAM's Trusted Execution Environment attestations, Lumen standardiz
 - `BUNDLE_VERIFIED` — confirmed via Jito bundle data, on-chain anchored
 - `BAM_ATTESTED` — full TEE attestation digest bound to receipt (upgrading when BAM API is available)
 
+**Current BAM constraint**
+Lumen does not currently have access to public per-bundle BAM TEE attestation digests. The available BAM integration surface exposes bundle-level execution metadata through `getBundleStatuses`, including:
+- `bundleId`
+- `slot`
+- `confirmationStatus`
+
+For that reason, current receipts are intentionally issued as `BUNDLE_VERIFIED`, not `BAM_ATTESTED`. This is a known protocol constraint and an explicit part of Lumen’s proof model, not an implementation bug.
+
+If deeper BAM attestation access becomes available, Lumen’s attestation model is designed to support a clean upgrade path to stronger proof levels without changing the core receipt standard.
+
 ## Stack
 
 - **Backend** — Fastify, Node.js, SQLite
