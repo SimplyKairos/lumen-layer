@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "skills": {
+    "helius": {
+      "source": "sendaifun/skills",
+      "ref": "main",
+      "sourceType": "github",
+      "computedHash": "434d7cc2307933a733fa52305cf4fe51ac4fe9f025c7099759d340567d77f811"
+    },
+    "integrating-jupiter": {
+      "source": "jup-ag/agent-skills",
+      "ref": "main",
+      "sourceType": "github",
+      "computedHash": "3f9149ae2317cf400afacd6faa87acf2dc5afb547dc00ae69b66f609866eef5d"
+    },
+    "meteora": {
+      "source": "sendaifun/skills",
+      "ref": "main",
+      "sourceType": "github",
+      "computedHash": "196f72ecf8a4b141e3938585a06f1dcb2e7f035a31258778d03a2a9cf547f60c"
+    },
+    "pumpfun": {
+      "source": "sendaifun/skills",
+      "ref": "main",
+      "sourceType": "github",
+      "computedHash": "67a6179bef1ebf08b0775378c5f5d5d8811afc852469009b3f775e856c1d22e0"
+    },
+    "raydium": {
+      "source": "sendaifun/skills",
+      "ref": "main",
+      "sourceType": "github",
+      "computedHash": "524aec4cdf774825fc5b1419337f5acede1fe40060f43577c9836b1e574f3305"
+    },
+    "solana-dev": {
+      "source": "solana-foundation/solana-dev-skill",
+      "sourceType": "github",
+      "computedHash": "4a4c953b235944cc5c2a76af9669406ee01213bf6892941399e646cfbf9259b9"
+    },
+    "solana-kit": {
+      "source": "sendaifun/skills",
+      "ref": "main",
+      "sourceType": "github",
+      "computedHash": "1c1a4b47d5a3a6717cd67dbe07db8ea5299e4510f262d672eec7782f21f5deaf"
+    },
+    "solana-kit-migration": {
+      "source": "sendaifun/skills",
+      "ref": "main",
+      "sourceType": "github",
+      "computedHash": "e2201f4811180f017706b707a3abbefa8821553d5a10bf6476f6ad3e31ebc841"
+    },
+    "vulnhunter": {
+      "source": "sendaifun/skills",
+      "ref": "main",
+      "sourceType": "github",
+      "computedHash": "6ce3cd084ba02bdf2338850651c52bf7ec16667461e47156e2c1a049d2fdb3ad"
+    }
+  }
+}
