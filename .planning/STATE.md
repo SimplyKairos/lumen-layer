@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 ## Current Position
 
 Phase: 1 of 6 (Canonical Receipt Pipeline)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-04-04 — Phase 1 context gathered and ready for plan creation
+Plan: 3 of 3 in current phase
+Status: Ready to execute
+Last activity: 2026-04-04 — Phase 1 research, validation, and execution plans created
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -43,6 +43,9 @@ Recent decisions affecting current work:
 - Initialization: v1 includes the protocol API, public verifier/explorer, webhooks, and the reference launchpad
 - Initialization: Devnet memo anchoring precedes any mainnet rollout
 - Initialization: Receipt contract alignment is an early prerequisite for every downstream surface
+- Phase 1: `POST /api/v1/stamp` accepts only `txSignature`, `bundleId`, and optional `walletAddress`
+- Phase 1: receipts remain `verified: false` and `onChainMemo: null` until Phase 2 memo anchoring
+- Phase 1: stamping is idempotent on `txSignature` and never persists partial bundle lookups
 
 ### Pending Todos
 
@@ -52,10 +55,11 @@ None yet.
 
 - `apps/api/src/server.ts` does not yet wire `apps/api/src/bam-service.ts` into the real stamp flow
 - `packages/schema/receipt-schema.json`, `apps/api/src/receipt.ts`, and `apps/api/src/verifier.ts` currently drift on receipt shape semantics
+- `apps/api/src/test-flow.ts` still depends on an external server process and synthetic bundle data until Phase 1 execution lands
 - Launchpad and webhook routes still return `501` placeholders in `apps/api/src/server.ts`
 
 ## Session Continuity
 
-Last session: 2026-04-04 21:43
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-canonical-receipt-pipeline/01-CONTEXT.md
+Last session: 2026-04-04 22:36
+Stopped at: Phase 1 planning complete
+Resume file: .planning/phases/01-canonical-receipt-pipeline/01-01-PLAN.md
