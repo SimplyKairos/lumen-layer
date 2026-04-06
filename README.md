@@ -2,13 +2,13 @@
 
 > Clarity before capital.
 
-Lumen is an open execution fairness protocol for Solana. Phase 1 issues a cryptographically verifiable execution receipt from canonical bundle execution context, and Phase 2 adds Solana memo anchoring.
+Lumen is an open execution fairness protocol for Solana. It turns canonical bundle execution context into a cryptographically verifiable receipt, anchors the receipt hash on Solana devnet via memo, and lets anyone replay the result against chain data.
 
 Built on Jito BAM's execution infrastructure, Lumen standardizes what fairness means at the execution layer and makes it verifiable by anyone, forever.
 
 ## What it does
 
-- **Execution receipts** — SHA-256 binding of transaction signature + bundle execution context
+- **Execution receipts** — SHA-256 binding of transaction signature + bundle execution context, anchored on devnet through a memo transaction
 - **Public verifier** — anyone can verify any receipt in real time, no trust in Lumen required
 - **Open schema** — canonical JSON receipt standard any wallet, launchpad, or custodian can integrate
 - **Webhook API** — one-line integration for external platforms
@@ -19,8 +19,8 @@ Built on Jito BAM's execution infrastructure, Lumen standardizes what fairness m
 1. Caller submits a transaction signature and bundle ID to Lumen
 2. Lumen fetches bundle data via `getBundleStatuses` — bundle ID, slot, confirmation status
 3. `SHA-256(txSignature || bundleId || slot)` is computed
-4. Phase 2 writes the hash on-chain as a Solana memo — immutable and permissionless
-5. Anyone can replay the receipt today, and Phase 2 extends that flow with memo-backed verification
+4. Lumen anchors the hash on devnet as a Solana memo transaction and stores that transaction signature in `onChainMemo`
+5. Anyone can fetch the memo transaction, compare its memo payload to `receiptHash`, and verify the receipt without trusting the database
 
 **Attestation levels:**
 - `BUNDLE_VERIFIED` — confirmed via Jito bundle data and canonical receipt hashing
@@ -67,10 +67,16 @@ POST /api/v1/stamp        — submit a transaction for receipt generation
 GET  /api/v1/verify/:id   — verify a receipt by ID
 GET  /api/v1/receipts     — list recent receipts
 
-Current Phase 1 stamp request body:
+Current stamp request body:
 `{ txSignature, bundleId, walletAddress? }`
 
-Phase 1 receipts intentionally remain `BUNDLE_VERIFIED` with `verified: false` until Phase 2 adds memo-backed verification semantics.
+Successful stamp responses now anchor `receiptHash` before returning `201` and store the memo transaction signature in `onChainMemo`.
+
+Verification statuses:
+- `VERIFIED`
+- `HASH_MISMATCH`
+- `MEMO_MISMATCH`
+- `ANCHOR_NOT_FOUND`
 
 ## Receipt schema
 
