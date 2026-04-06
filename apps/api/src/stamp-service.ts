@@ -1,5 +1,6 @@
 import { buildReceipt, type LumenReceipt } from './receipt'
 import { getBundleData, type BundleLookupResult } from './bam-service'
+import { anchorReceiptHash, type AnchorReceiptHashResult } from './memo-service'
 
 export interface StampRequestInput {
   txSignature: string
@@ -9,6 +10,7 @@ export interface StampRequestInput {
 
 export interface StampServiceDependencies {
   getBundleData?: (bundleId: string) => Promise<BundleLookupResult>
+  anchorReceiptHash?: (receiptHash: string) => Promise<AnchorReceiptHashResult>
 }
 
 export type StampResult =
@@ -18,8 +20,12 @@ export type StampResult =
     }
   | {
       ok: false
-      statusCode: 503 | 422
-      error: 'bundle_status_unavailable' | 'tx_signature_not_in_bundle'
+      statusCode: 500 | 503 | 422
+      error:
+        | 'bundle_status_unavailable'
+        | 'tx_signature_not_in_bundle'
+        | 'anchor_signer_unavailable'
+        | 'memo_anchor_failed'
       retryable: boolean
     }
 
@@ -47,14 +53,31 @@ export async function createStampedReceipt(
     }
   }
 
+  const receipt = buildReceipt(
+    input.txSignature,
+    bundleLookup.data.bundleId,
+    bundleLookup.data.slot,
+    bundleLookup.data.confirmationStatus,
+    input.walletAddress ?? undefined
+  )
+
+  const anchorResult = await (deps.anchorReceiptHash ?? anchorReceiptHash)(receipt.receiptHash)
+
+  if ('error' in anchorResult) {
+    return {
+      ok: false,
+      statusCode: anchorResult.error === 'anchor_signer_unavailable' ? 500 : 503,
+      error: anchorResult.error,
+      retryable: anchorResult.retryable,
+    }
+  }
+
   return {
     ok: true,
-    receipt: buildReceipt(
-      input.txSignature,
-      bundleLookup.data.bundleId,
-      bundleLookup.data.slot,
-      bundleLookup.data.confirmationStatus,
-      input.walletAddress ?? undefined
-    ),
+    receipt: {
+      ...receipt,
+      onChainMemo: anchorResult.memoSignature,
+      verified: true,
+    },
   }
 }

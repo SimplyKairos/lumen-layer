@@ -42,6 +42,23 @@ const apiErrorSchema = {
   },
 } as const
 
+const stampErrorCodes = [
+  'bundle_status_unavailable',
+  'tx_signature_not_in_bundle',
+  'anchor_signer_unavailable',
+  'memo_anchor_failed',
+] as const
+
+const stampErrorSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['error'],
+  properties: {
+    error: { type: 'string', enum: [...stampErrorCodes] },
+    retryable: { type: 'boolean' },
+  },
+} as const
+
 function isUniqueTxConstraintError(err: unknown) {
   return err instanceof Error && err.message.includes('receipts.tx_signature')
 }
@@ -69,9 +86,9 @@ export function buildServer(deps: BuildServerDependencies = {}) {
         200: receiptSchema,
         201: receiptSchema,
         400: apiErrorSchema,
-        422: apiErrorSchema,
-        503: apiErrorSchema,
-        500: apiErrorSchema,
+        422: stampErrorSchema,
+        503: stampErrorSchema,
+        500: stampErrorSchema,
       },
     },
   }, async (request, reply) => {
