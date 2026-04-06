@@ -4,4 +4,5 @@ dist/
 .DS_Store
 *.local
 apps/api/data/*.db
-apps/api/logs/*.log
+apps/api/logs/*.log.planning/
+.planning/
