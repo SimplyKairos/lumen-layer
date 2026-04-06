@@ -16,9 +16,23 @@ export interface BundleData {
   transactions: string[]
 }
 
-export async function getBundleData(bundleId: string): Promise<BundleData | null> {
+export type BundleLookupResult =
+  | { status: 'ok'; data: BundleData }
+  | { status: 'not_ready' }
+  | { status: 'lookup_failed' }
+
+function isBundleErrorOk(err: unknown) {
+  return Boolean(
+    err &&
+    typeof err === 'object' &&
+    'Ok' in (err as Record<string, unknown>) &&
+    (err as Record<string, unknown>).Ok === null
+  )
+}
+
+export async function getBundleData(bundleId: string): Promise<BundleLookupResult> {
   try {
-    const response = await fetch(`${JITO_URL}/api/v1/bundles`, {
+    const response = await fetch(`${JITO_URL}/api/v1/getBundleStatuses`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -29,25 +43,49 @@ export async function getBundleData(bundleId: string): Promise<BundleData | null
       }),
     })
 
+    if (!response.ok) {
+      console.error('Jito status lookup failed:', response.status)
+      return { status: 'lookup_failed' }
+    }
+
     const json = await response.json() as any
 
     if (json.error) {
       console.error('Jito error:', json.error)
-      return null
+      return { status: 'lookup_failed' }
     }
 
     const result = json?.result?.value?.[0]
-    if (!result) return null
+    if (!result) {
+      return { status: 'not_ready' }
+    }
+
+    const confirmationStatus = result.confirmationStatus ?? result.confirmation_status
+    const transactions = Array.isArray(result.transactions) ? result.transactions : []
+    const hasBundleError = result.err != null && !isBundleErrorOk(result.err)
+
+    if (
+      hasBundleError ||
+      typeof result.bundle_id !== 'string' ||
+      typeof result.slot !== 'number' ||
+      typeof confirmationStatus !== 'string' ||
+      transactions.length === 0
+    ) {
+      return { status: 'not_ready' }
+    }
 
     return {
-      bundleId: result.bundle_id,
-      slot: result.slot,
-      confirmationStatus: result.confirmation_status,
-      transactions: result.transactions,
+      status: 'ok',
+      data: {
+        bundleId: result.bundle_id,
+        slot: result.slot,
+        confirmationStatus,
+        transactions,
+      },
     }
   } catch (err) {
     console.error('getBundleData error:', err)
-    return null
+    return { status: 'lookup_failed' }
   }
 }
 
