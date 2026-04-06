@@ -6,7 +6,11 @@ import {
   receiptSchema,
   type ReceiptRow,
 } from './receipt'
-import { verifyReceipt, verificationResultSchema } from './verifier'
+import {
+  verifyReceipt,
+  verificationResultSchema,
+  type VerificationDependencies,
+} from './verifier'
 import { createStampedReceipt, type StampServiceDependencies } from './stamp-service'
 import 'dotenv/config'
 import Fastify from 'fastify'
@@ -63,7 +67,8 @@ function isUniqueTxConstraintError(err: unknown) {
   return err instanceof Error && err.message.includes('receipts.tx_signature')
 }
 
-export interface BuildServerDependencies extends StampServiceDependencies {}
+export interface BuildServerDependencies
+  extends StampServiceDependencies, VerificationDependencies {}
 
 export function buildServer(deps: BuildServerDependencies = {}) {
   const server = Fastify({ logger: true })
@@ -156,7 +161,7 @@ export function buildServer(deps: BuildServerDependencies = {}) {
     const { receiptId } = request.params as { receiptId: string }
 
     try {
-      const result = await verifyReceipt(receiptId)
+      const result = await verifyReceipt(receiptId, deps)
       if (!result) return reply.code(404).send({ error: 'Receipt not found' })
       return reply.send(result)
     } catch (err) {

@@ -3,6 +3,15 @@ import { v4 as uuidv4 } from 'uuid'
 
 export const receiptAttestationLevels = ['BUNDLE_VERIFIED', 'BAM_ATTESTED'] as const
 export type ReceiptAttestationLevel = (typeof receiptAttestationLevels)[number]
+export const receiptVerificationStatuses = [
+  'UNANCHORED',
+  'VERIFIED',
+  'HASH_MISMATCH',
+  'MEMO_MISMATCH',
+  'ANCHOR_NOT_FOUND',
+  'ANCHOR_LOOKUP_FAILED',
+] as const
+export type ReceiptVerificationStatus = (typeof receiptVerificationStatuses)[number]
 
 export interface LumenReceipt {
   receiptId: string
