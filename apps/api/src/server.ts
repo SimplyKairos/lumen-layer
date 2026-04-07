@@ -12,6 +12,15 @@ import {
   type VerificationDependencies,
 } from './verifier'
 import { createStampedReceipt, type StampServiceDependencies } from './stamp-service'
+import {
+  createWebhookSubscription,
+  deliverReceiptIssuedEvent,
+  type WebhookServiceDependencies,
+} from './webhook-service'
+import {
+  webhookCreateResponseSchema,
+  webhookSubscriptionCreateBodySchema,
+} from './webhook'
 import 'dotenv/config'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
@@ -68,7 +77,7 @@ function isUniqueTxConstraintError(err: unknown) {
 }
 
 export interface BuildServerDependencies
-  extends StampServiceDependencies, VerificationDependencies {}
+  extends StampServiceDependencies, VerificationDependencies, WebhookServiceDependencies {}
 
 export function buildServer(deps: BuildServerDependencies = {}) {
   const server = Fastify({ logger: true })
@@ -129,6 +138,15 @@ export function buildServer(deps: BuildServerDependencies = {}) {
         INSERT INTO receipts (id, tx_signature, bundle_id, slot, confirmation_status, receipt_hash, on_chain_memo, attestation_level, wallet_address, verified, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(...getReceiptInsertParams(stampResult.receipt))
+
+      try {
+        await deliverReceiptIssuedEvent(stampResult.receipt, deps)
+      } catch (deliveryError) {
+        server.log.error(
+          { err: deliveryError, receiptId: stampResult.receipt.receiptId },
+          'Failed to deliver receipt-issued webhooks'
+        )
+      }
 
       return reply.code(201).send(stampResult.receipt)
     } catch (err) {
@@ -217,9 +235,37 @@ export function buildServer(deps: BuildServerDependencies = {}) {
   })
 
   // WEBHOOK ROUTE
-  // POST /api/v1/webhook — webhook for external integrators
-  server.post('/api/v1/webhook', async (request, reply) => {
-    return reply.code(501).send({ error: 'not implemented yet' })
+  // POST /api/v1/webhooks — register an external receipt-issued webhook
+  server.post('/api/v1/webhooks', {
+    schema: {
+      body: webhookSubscriptionCreateBodySchema,
+      response: {
+        201: webhookCreateResponseSchema,
+        400: apiErrorSchema,
+        500: apiErrorSchema,
+      },
+    },
+  }, async (request, reply) => {
+    const { targetUrl, eventType } = request.body as {
+      targetUrl: string
+      eventType?: 'receipt.issued'
+    }
+
+    try {
+      const subscription = createWebhookSubscription({
+        targetUrl,
+        eventType,
+      })
+
+      return reply.code(201).send(subscription)
+    } catch (err) {
+      if (err instanceof Error && err.message === 'invalid_webhook_target_url') {
+        return reply.code(400).send({ error: 'Invalid webhook target URL' })
+      }
+
+      server.log.error(err)
+      return reply.code(500).send({ error: 'Failed to create webhook subscription' })
+    }
   })
 
   return server
