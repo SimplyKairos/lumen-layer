@@ -9,10 +9,6 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-  }
-
   const goTo = (path: string) => {
     window.location.assign(path)
   }
@@ -22,8 +18,8 @@ export default function Navbar() {
   }
 
   const handleNavClick = (label: string) => {
-    if (label === 'Protocol') {
-      scrollTo('how-it-works')
+    if (label === 'Home') {
+      goTo('/')
       return
     }
 
@@ -68,10 +64,10 @@ export default function Navbar() {
         backdropFilter: 'blur(12px)',
       }}>
         {[
-          { label: 'Protocol', id: 'how-it-works' },
+          { label: 'Home', id: 'home' },
           { label: 'Verify', id: 'verify' },
-          { label: 'Github', id: 'docs' },
           { label: 'Receipts', id: 'explorer' },
+          { label: 'Github', id: 'docs' },
         ].map(({ label, id }) => (
           <button
             key={id}

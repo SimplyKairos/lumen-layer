@@ -4,11 +4,6 @@ import { getRevealStyle, useScrollReveal } from './ScrollReveal'
 export default function Footer() {
   const { ref, visible, reduceMotion } = useScrollReveal<HTMLElement>()
 
-  const scrollToProtocol = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault()
-    document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })
-  }
-
   return (
     <footer
       ref={ref}
@@ -19,13 +14,13 @@ export default function Footer() {
       }}
     >
       <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
+        display: 'grid',
+        gridTemplateColumns: '1fr auto 1fr',
         alignItems: 'center',
         marginBottom: '36px',
       }}>
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifySelf: 'start' }}>
           <img src={LumenLogo} alt="Lumen" style={{ width: '22px', height: '22px', objectFit: 'contain', opacity: 0.5 }} />
           <span style={{
             fontFamily: "'Outfit', sans-serif",
@@ -38,20 +33,21 @@ export default function Footer() {
         </div>
 
         {/* Links */}
-        <div style={{ display: 'flex', gap: '36px' }}>
-          {['Protocol', 'Verify', 'GitHub'].map(link => (
+        <div style={{ display: 'flex', gap: '36px', justifySelf: 'center' }}>
+          {['Verify', 'Receipts', 'GitHub'].map(link => (
             <a
               key={link}
               href={
                 link === 'Verify'
                   ? '/verify'
+                  : link === 'Receipts'
+                    ? '/receipts'
                   : link === 'GitHub'
                     ? 'https://github.com/SimplyKairos/lumen-layer'
-                    : '#how-it-works'
+                    : '/'
               }
               target={link === 'GitHub' ? '_blank' : undefined}
               rel={link === 'GitHub' ? 'noopener noreferrer' : undefined}
-              onClick={link === 'Protocol' ? scrollToProtocol : undefined}
               style={{
               fontFamily: "'Outfit', sans-serif",
               fontSize: '13px',
@@ -74,6 +70,7 @@ export default function Footer() {
           fontSize: '10px',
           color: 'rgba(255, 255, 255, 0.51)',
           letterSpacing: '0.5px',
+          justifySelf: 'end',
         }}>
           Apache-2.0 · Built on Jito BAM · Solana
         </span>
