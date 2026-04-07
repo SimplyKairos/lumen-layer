@@ -6,6 +6,8 @@ Lumen is an open execution fairness protocol for Solana. It turns canonical bund
 
 Built on Jito BAM's execution infrastructure, Lumen standardizes what fairness means at the execution layer and makes it verifiable by anyone, forever.
 
+**Note: Frontend is under active development. Live site coming soon at lumenlayer.tech.**
+
 ## What it does
 
 - **Execution receipts** — SHA-256 binding of transaction signature + bundle execution context, anchored on devnet through a memo transaction

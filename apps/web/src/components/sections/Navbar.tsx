@@ -32,7 +32,7 @@ export default function Navbar() {
       return
     }
 
-    if (label === 'Docs') {
+    if (label === 'Github') {
       openExternal('https://github.com/SimplyKairos/lumen-layer')
       return
     }
@@ -70,7 +70,7 @@ export default function Navbar() {
         {[
           { label: 'Protocol', id: 'how-it-works' },
           { label: 'Verify', id: 'verify' },
-          { label: 'Docs', id: 'docs' },
+          { label: 'Github', id: 'docs' },
           { label: 'Receipts', id: 'explorer' },
         ].map(({ label, id }) => (
           <button
