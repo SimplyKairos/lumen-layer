@@ -38,6 +38,9 @@ interface ApiErrorPayload {
   error?: string
 }
 
+const defaultReceiptError =
+  "We couldn't load that receipt. Check the ID and try again, or return to the recent receipts list."
+
 function getApiBaseUrl() {
   return import.meta.env.VITE_API_BASE_URL ||
     (window.location.hostname === 'localhost'
@@ -69,4 +72,22 @@ export function fetchVerificationResult(receiptId: string) {
 
 export function fetchRecentReceipts() {
   return fetchProtocolJson<ReceiptListResponse>('/api/v1/receipts')
+}
+
+export function buildVerifyHref(receiptId: string) {
+  return `/verify?receiptId=${encodeURIComponent(receiptId)}`
+}
+
+export function normalizeProtocolError(
+  error: unknown,
+  fallback = defaultReceiptError,
+  preferApiMessage = false
+) {
+  const apiMessage = error instanceof Error ? error.message.trim() : ''
+
+  if (preferApiMessage && apiMessage) {
+    return apiMessage
+  }
+
+  return fallback
 }

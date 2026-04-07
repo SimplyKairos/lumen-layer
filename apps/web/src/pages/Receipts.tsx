@@ -4,6 +4,7 @@ import StatusBadge from '../components/protocol/StatusBadge'
 import {
   fetchRecentReceipts,
   fetchVerificationResult,
+  normalizeProtocolError,
   type ProtocolReceipt,
   type VerificationStatus,
 } from '../lib/protocol-api'
@@ -55,7 +56,12 @@ export default function ReceiptsPage() {
         }
 
         setRows([])
-        setError(err instanceof Error ? err.message : 'Unknown error')
+        setError(
+          normalizeProtocolError(
+            err,
+            "We couldn't load recent receipts. Return to the verifier or try again in a moment."
+          )
+        )
       } finally {
         if (active) {
           setLoading(false)

@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import ProtocolPageShell, { protocolPageStyles } from '../components/protocol/ProtocolPageShell'
 import StatusBadge from '../components/protocol/StatusBadge'
 import {
+  buildVerifyHref,
   fetchVerificationResult,
+  normalizeProtocolError,
   type VerificationResult,
 } from '../lib/protocol-api'
 import { formatReceiptTime, formatTechnicalValue } from '../lib/receipt-format'
@@ -69,7 +71,7 @@ export default function ReceiptDetailPage({ receiptId }: { receiptId: string }) 
         }
 
         setResult(null)
-        setError(err instanceof Error ? err.message : 'Unknown error')
+        setError(normalizeProtocolError(err))
       } finally {
         if (active) {
           setLoading(false)
@@ -121,6 +123,9 @@ export default function ReceiptDetailPage({ receiptId }: { receiptId: string }) 
               flexWrap: 'wrap',
             }}>
               <StatusBadge status={result.verificationStatus} />
+              <a href={buildVerifyHref(result.receiptId)} style={protocolPageStyles.link}>
+                Open this receipt in the verifier
+              </a>
             </div>
 
             <div style={{

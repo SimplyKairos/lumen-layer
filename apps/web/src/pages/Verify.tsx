@@ -4,6 +4,7 @@ import ProtocolPageShell, { protocolPageStyles } from '../components/protocol/Pr
 import StatusBadge from '../components/protocol/StatusBadge'
 import {
   fetchVerificationResult,
+  normalizeProtocolError,
   type VerificationResult,
 } from '../lib/protocol-api'
 import { formatReceiptTime, formatTechnicalValue } from '../lib/receipt-format'
@@ -70,7 +71,7 @@ export default function VerifyPage() {
       setResult(verificationResult)
     } catch (err) {
       setResult(null)
-      setError(err instanceof Error ? err.message : 'Unknown error')
+      setError(normalizeProtocolError(err))
     } finally {
       setLoading(false)
     }
