@@ -69,6 +69,7 @@ export interface WebhookDelivery {
 }
 
 export interface WebhookDeliveryListResponse {
+  subscription: WebhookSubscription
   deliveries: WebhookDelivery[]
   count: number
 }
@@ -176,8 +177,9 @@ export const webhookDeliverySchema = {
 export const webhookDeliveryListSchema = {
   type: 'object',
   additionalProperties: false,
-  required: ['deliveries', 'count'],
+  required: ['subscription', 'deliveries', 'count'],
   properties: {
+    subscription: webhookSubscriptionSchema,
     deliveries: {
       type: 'array',
       items: webhookDeliverySchema,

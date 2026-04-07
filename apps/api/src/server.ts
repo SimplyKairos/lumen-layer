@@ -15,11 +15,15 @@ import { createStampedReceipt, type StampServiceDependencies } from './stamp-ser
 import {
   createWebhookSubscription,
   deliverReceiptIssuedEvent,
+  getWebhookSubscription,
+  listWebhookDeliveries,
   type WebhookServiceDependencies,
 } from './webhook-service'
 import {
   webhookCreateResponseSchema,
+  webhookDeliveryListSchema,
   webhookSubscriptionCreateBodySchema,
+  webhookSubscriptionParamsSchema,
 } from './webhook'
 import 'dotenv/config'
 import Fastify from 'fastify'
@@ -265,6 +269,39 @@ export function buildServer(deps: BuildServerDependencies = {}) {
 
       server.log.error(err)
       return reply.code(500).send({ error: 'Failed to create webhook subscription' })
+    }
+  })
+
+  // GET /api/v1/webhooks/:subscriptionId/deliveries — inspect delivery history for one subscription
+  server.get('/api/v1/webhooks/:subscriptionId/deliveries', {
+    schema: {
+      params: webhookSubscriptionParamsSchema,
+      response: {
+        200: webhookDeliveryListSchema,
+        404: apiErrorSchema,
+        500: apiErrorSchema,
+      },
+    },
+  }, async (request, reply) => {
+    const { subscriptionId } = request.params as { subscriptionId: string }
+
+    try {
+      const subscription = getWebhookSubscription(subscriptionId)
+
+      if (!subscription) {
+        return reply.code(404).send({ error: 'Webhook subscription not found' })
+      }
+
+      const deliveryHistory = listWebhookDeliveries(subscriptionId)
+
+      if (!deliveryHistory) {
+        return reply.code(404).send({ error: 'Webhook subscription not found' })
+      }
+
+      return reply.send(deliveryHistory)
+    } catch (err) {
+      server.log.error(err)
+      return reply.code(500).send({ error: 'Failed to fetch webhook deliveries' })
     }
   })
 

@@ -265,7 +265,13 @@ export function getWebhookSubscription(
 
 export function listWebhookDeliveries(
   subscriptionId: string
-): WebhookDeliveryListResponse {
+): WebhookDeliveryListResponse | null {
+  const subscription = getWebhookSubscription(subscriptionId)
+
+  if (!subscription) {
+    return null
+  }
+
   const rows = db.prepare(`
     SELECT *
     FROM webhook_deliveries
@@ -275,6 +281,7 @@ export function listWebhookDeliveries(
   `).all(subscriptionId) as WebhookDeliveryRow[]
 
   return {
+    subscription,
     deliveries: rows.map(mapWebhookDeliveryRowToDelivery),
     count: rows.length,
   }
