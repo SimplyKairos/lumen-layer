@@ -13,7 +13,7 @@ Built on Jito BAM's execution infrastructure, Lumen standardizes what fairness m
 - **Execution receipts** — SHA-256 binding of transaction signature + bundle execution context, anchored on devnet through a memo transaction
 - **Public verifier** — anyone can verify any receipt in real time, no trust in Lumen required
 - **Open schema** — canonical JSON receipt standard any wallet, launchpad, or custodian can integrate
-- **Webhook API** — one-line integration for external platforms
+- **Webhook API** — signed `receipt.issued` deliveries for external platforms
 - **Reference launchpad** — fair-launch token launchpad that runs entirely on the Lumen protocol
 
 ## How it works
@@ -68,11 +68,24 @@ cd apps/api && npm install && npm run dev
 POST /api/v1/stamp        — submit a transaction for receipt generation
 GET  /api/v1/verify/:id   — verify a receipt by ID
 GET  /api/v1/receipts     — list recent receipts
+POST /api/v1/webhooks     — create a receipt-issued webhook subscription
+GET  /api/v1/webhooks/:subscriptionId/deliveries — inspect delivery history for one subscription
 
 Current stamp request body:
 `{ txSignature, bundleId, walletAddress? }`
 
 Successful stamp responses now anchor `receiptHash` before returning `201` and store the memo transaction signature in `onChainMemo`.
+
+Webhook deliveries send an event envelope with the canonical receipt nested inside:
+`{ eventId, eventType: 'receipt.issued', createdAt, receipt }`
+
+Webhook signature headers:
+- `x-lumen-delivery-id`
+- `x-lumen-event-type`
+- `x-lumen-timestamp`
+- `x-lumen-signature`
+
+Webhook delivery failures do not invalidate receipt issuance. Lumen records delivery status separately so integrators can inspect delivered and failed attempts through the delivery history route.
 
 Verification statuses:
 - `VERIFIED`
