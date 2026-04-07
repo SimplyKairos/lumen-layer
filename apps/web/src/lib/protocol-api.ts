@@ -66,3 +66,7 @@ async function fetchProtocolJson<T>(path: string): Promise<T> {
 export function fetchVerificationResult(receiptId: string) {
   return fetchProtocolJson<VerificationResult>(`/api/v1/verify/${encodeURIComponent(receiptId)}`)
 }
+
+export function fetchRecentReceipts() {
+  return fetchProtocolJson<ReceiptListResponse>('/api/v1/receipts')
+}
