@@ -79,6 +79,49 @@ db.exec(`
   )
 `)
 
+// WEBHOOK SUBSCRIPTIONS TABLE
+// External integrators that receive receipt-issued events
+db.exec(`
+  CREATE TABLE IF NOT EXISTS webhook_subscriptions (
+    id TEXT PRIMARY KEY,
+    target_url TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    signing_secret TEXT NOT NULL,
+    active INTEGER DEFAULT 1,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  )
+`)
+
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_webhook_subscriptions_event_active
+  ON webhook_subscriptions (event_type, active)
+`)
+
+// WEBHOOK DELIVERIES TABLE
+// Delivery attempts for outbound receipt-issued events
+db.exec(`
+  CREATE TABLE IF NOT EXISTS webhook_deliveries (
+    id TEXT PRIMARY KEY,
+    subscription_id TEXT NOT NULL,
+    receipt_id TEXT NOT NULL,
+    event_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    status TEXT NOT NULL,
+    attempt_count INTEGER DEFAULT 1,
+    response_status INTEGER,
+    error_message TEXT,
+    delivered_at INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  )
+`)
+
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_subscription_created
+  ON webhook_deliveries (subscription_id, created_at DESC)
+`)
+
 // BUNDLER ALERTS TABLE
 // Log of detected bundling activity on launches
 db.exec(`
