@@ -2,30 +2,31 @@
 
 > Clarity before capital.
 
-Lumen is an open execution fairness protocol for Solana. It turns canonical bundle execution context into a cryptographically verifiable receipt, anchors the receipt hash on Solana devnet via memo, and lets anyone replay the result against chain data.
+Lumen is an open execution fairness protocol for Solana. Every transaction routed through Lumen receives a cryptographically verifiable execution receipt — permanently anchored on-chain via Solana memo.
+
+The protocol is live. Every receipt is SHA-256 bound to real Jito bundle execution context and anchored permanently on-chain via Solana memo.
 
 Built on Jito BAM's execution infrastructure, Lumen standardizes what fairness means at the execution layer and makes it verifiable by anyone, forever.
 
-**Note: Frontend is under active development. Live site coming soon at lumenlayer.tech.**
-
 ## What it does
 
-- **Execution receipts** — SHA-256 binding of transaction signature + bundle execution context, anchored on devnet through a memo transaction
+- **Execution receipts** — SHA-256 binding of transaction signature + bundle execution context, written on-chain
 - **Public verifier** — anyone can verify any receipt in real time, no trust in Lumen required
+- **Receipt explorer** — browse and search recent receipts by transaction signature
 - **Open schema** — canonical JSON receipt standard any wallet, launchpad, or custodian can integrate
-- **Webhook API** — signed `receipt.issued` deliveries for external platforms
-- **Reference launchpad** — fair-launch token launchpad that runs entirely on the Lumen protocol
+- **Webhook API** — signed delivery with per-subscription secrets and delivery history
+- **Reference launchpad** — fair-launch token launchpad where every trade is automatically stamped with a Lumen receipt
 
 ## How it works
 
 1. Caller submits a transaction signature and bundle ID to Lumen
 2. Lumen fetches bundle data via `getBundleStatuses` — bundle ID, slot, confirmation status
 3. `SHA-256(txSignature || bundleId || slot)` is computed
-4. Lumen anchors the hash on devnet as a Solana memo transaction and stores that transaction signature in `onChainMemo`
-5. Anyone can fetch the memo transaction, compare its memo payload to `receiptHash`, and verify the receipt without trusting the database
+4. Hash is written on-chain as a Solana memo — immutable and permissionless
+5. Anyone can replay and verify via the public verifier
 
 **Attestation levels:**
-- `BUNDLE_VERIFIED` — confirmed via Jito bundle data and canonical receipt hashing
+- `BUNDLE_VERIFIED` — confirmed via Jito bundle data, on-chain anchored
 - `BAM_ATTESTED` — full TEE attestation digest bound to receipt (upgrade path ready when BAM API is available)
 
 **Current BAM constraint**
@@ -48,6 +49,7 @@ If deeper BAM attestation access becomes available, Lumen's attestation model is
 - **Deployment** — Vercel, DigitalOcean
 
 ## Getting started
+
 ```bash
 git clone https://github.com/SimplyKairos/lumen-layer
 cd lumen-layer
@@ -65,33 +67,13 @@ cd apps/api && npm install && npm run dev
 
 ## API
 
-POST /api/v1/stamp        — submit a transaction for receipt generation
-GET  /api/v1/verify/:id   — verify a receipt by ID
-GET  /api/v1/receipts     — list recent receipts
-POST /api/v1/webhooks     — create a receipt-issued webhook subscription
-GET  /api/v1/webhooks/:subscriptionId/deliveries — inspect delivery history for one subscription
-
-Current stamp request body:
-`{ txSignature, bundleId, walletAddress? }`
-
-Successful stamp responses now anchor `receiptHash` before returning `201` and store the memo transaction signature in `onChainMemo`.
-
-Webhook deliveries send an event envelope with the canonical receipt nested inside:
-`{ eventId, eventType: 'receipt.issued', createdAt, receipt }`
-
-Webhook signature headers:
-- `x-lumen-delivery-id`
-- `x-lumen-event-type`
-- `x-lumen-timestamp`
-- `x-lumen-signature`
-
-Webhook delivery failures do not invalidate receipt issuance. Lumen records delivery status separately so integrators can inspect delivered and failed attempts through the delivery history route.
-
-Verification statuses:
-- `VERIFIED`
-- `HASH_MISMATCH`
-- `MEMO_MISMATCH`
-- `ANCHOR_NOT_FOUND`
+```
+POST /api/v1/stamp                                  — submit a transaction for receipt generation
+GET  /api/v1/verify/:receiptId                      — verify a receipt by ID
+GET  /api/v1/receipts                               — list recent receipts
+POST /api/v1/webhooks                               — register a webhook subscription
+GET  /api/v1/webhooks/:subscriptionId/deliveries    — inspect webhook delivery history
+```
 
 ## Receipt schema
 
