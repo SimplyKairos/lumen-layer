@@ -25,6 +25,19 @@ import {
   webhookSubscriptionCreateBodySchema,
   webhookSubscriptionParamsSchema,
 } from './webhook'
+import {
+  createLaunch,
+  getLaunchById,
+  listLaunches,
+  type LaunchServiceDependencies,
+} from './launch-service'
+import {
+  launchCreateBodySchema,
+  launchListSchema,
+  launchParamsSchema,
+  launchSchema,
+  type LaunchCreateBody,
+} from './launch'
 import 'dotenv/config'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
@@ -81,7 +94,11 @@ function isUniqueTxConstraintError(err: unknown) {
 }
 
 export interface BuildServerDependencies
-  extends StampServiceDependencies, VerificationDependencies, WebhookServiceDependencies {}
+  extends
+    StampServiceDependencies,
+    VerificationDependencies,
+    WebhookServiceDependencies,
+    LaunchServiceDependencies {}
 
 export function buildServer(deps: BuildServerDependencies = {}) {
   const server = Fastify({ logger: true })
@@ -218,18 +235,66 @@ export function buildServer(deps: BuildServerDependencies = {}) {
 
   // LAUNCHPAD ROUTES
   // POST /api/v1/launch — create a new token launch
-  server.post('/api/v1/launch', async (request, reply) => {
-    return reply.code(501).send({ error: 'not implemented yet' })
+  server.post('/api/v1/launch', {
+    schema: {
+      body: launchCreateBodySchema,
+      response: {
+        201: launchSchema,
+        500: apiErrorSchema,
+      },
+    },
+  }, async (request, reply) => {
+    try {
+      const launch = await createLaunch(request.body as LaunchCreateBody, deps)
+      return reply.code(201).send(launch)
+    } catch (err) {
+      server.log.error(err)
+      return reply.code(500).send({ error: 'Failed to create launch' })
+    }
   })
 
   // GET /api/v1/launches — list all launches
-  server.get('/api/v1/launches', async (request, reply) => {
-    return reply.code(501).send({ error: 'not implemented yet' })
+  server.get('/api/v1/launches', {
+    schema: {
+      response: {
+        200: launchListSchema,
+        500: apiErrorSchema,
+      },
+    },
+  }, async (request, reply) => {
+    try {
+      return reply.send(listLaunches())
+    } catch (err) {
+      server.log.error(err)
+      return reply.code(500).send({ error: 'Failed to fetch launches' })
+    }
   })
 
   // GET /api/v1/launches/:launchId — get a specific launch
-  server.get('/api/v1/launches/:launchId', async (request, reply) => {
-    return reply.code(501).send({ error: 'not implemented yet' })
+  server.get('/api/v1/launches/:launchId', {
+    schema: {
+      params: launchParamsSchema,
+      response: {
+        200: launchSchema,
+        404: apiErrorSchema,
+        500: apiErrorSchema,
+      },
+    },
+  }, async (request, reply) => {
+    const { launchId } = request.params as { launchId: string }
+
+    try {
+      const launch = getLaunchById(launchId)
+
+      if (!launch) {
+        return reply.code(404).send({ error: 'Launch not found' })
+      }
+
+      return reply.send(launch)
+    } catch (err) {
+      server.log.error(err)
+      return reply.code(500).send({ error: 'Failed to fetch launch' })
+    }
   })
 
   // CREATOR ROUTES
