@@ -5,6 +5,21 @@ const DB_PATH = path.join(__dirname, '../data/lumen.db')
 
 export const db = new Database(DB_PATH)
 
+type TableInfoRow = {
+  name: string
+}
+
+function hasColumn(tableName: string, columnName: string) {
+  const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as TableInfoRow[]
+  return columns.some(column => column.name === columnName)
+}
+
+function ensureColumn(tableName: string, columnName: string, definition: string) {
+  if (!hasColumn(tableName, columnName)) {
+    db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${definition}`)
+  }
+}
+
 // Enable WAL mode for better performance
 db.pragma('journal_mode = WAL')
 
@@ -49,6 +64,13 @@ db.exec(`
     launched_at INTEGER
   )
 `)
+
+ensureColumn('launches', 'alpha_vault_address', 'alpha_vault_address TEXT')
+ensureColumn('launches', 'alpha_vault_mode', "alpha_vault_mode TEXT DEFAULT 'FCFS'")
+ensureColumn('launches', 'alpha_vault_activation_at', 'alpha_vault_activation_at INTEGER')
+ensureColumn('launches', 'dbc_config_address', 'dbc_config_address TEXT')
+ensureColumn('launches', 'dbc_pool_address', 'dbc_pool_address TEXT')
+ensureColumn('launches', 'activated_at', 'activated_at INTEGER')
 
 // CREATORS TABLE
 // Creator profiles and reputation
