@@ -6,7 +6,7 @@ import WhyWeBuiltThis from './components/sections/WhyWeBuiltThis'
 import HowItWorks from './components/sections/HowItWorks'
 import CTA from './components/sections/CTA'
 import Footer from './components/sections/Footer'
-import siteBg from './assets/SiteBG.png'
+import siteBg from './assets/SiteBG.jpg'
 
 export default function App() {
   useEffect(() => {
@@ -27,10 +27,13 @@ export default function App() {
       <div style={{
         position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
         backgroundImage: `url(${siteBg})`,
-        backgroundSize: 'cover', backgroundPosition: 'center',
-        opacity: 0.5, mixBlendMode: 'screen',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat',
+        opacity: 2, mixBlendMode: 'screen',
       }} />
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', background: 'rgba(3,7,15,0.9)' }} />
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', background: 'rgba(3, 7, 15, 0.8)' }} />
       <div style={{ position: 'relative', zIndex: 1 }}>
         <Navbar />
         <Hero />

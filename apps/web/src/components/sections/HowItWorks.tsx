@@ -1,4 +1,3 @@
-import layers from '../../assets/Layers.svg'
 import { getRevealStyle, useScrollReveal } from './ScrollReveal'
 
 const steps = [
@@ -34,23 +33,6 @@ export default function HowItWorks() {
 
   return (
     <section id="how-it-works" style={{ padding: '80px 46px', position: 'relative', overflow: 'hidden' }}>
-
-      {/* Layers image — right side, blue tinted */}
-      <img
-        src={layers}
-        alt=""
-        style={{
-          position: 'absolute',
-          right: '-80px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          width: '480px',
-          opacity: 0.2,
-          pointerEvents: 'none',
-          mixBlendMode: 'screen',
-        }}
-      />
-
       <div
         ref={ref}
         style={{
@@ -65,7 +47,7 @@ export default function HowItWorks() {
           fontSize: '25px',
           letterSpacing: '3px',
           textTransform: 'uppercase',
-          color: 'rgba(27,79,216,0.7)',
+          color: 'rgba(255, 255, 255, 0.7)',
           marginBottom: '18px',
         }}>
           Protocol mechanics
@@ -160,7 +142,7 @@ export default function HowItWorks() {
                   padding: '20px 24px',
                   fontFamily: "'DM Mono', monospace",
                   fontSize: '14px',
-                  color: 'rgba(255, 255, 255, 0.55)',
+                  color: 'rgba(255, 255, 255, 0.84)',
                   lineHeight: 1.8,
                   whiteSpace: 'pre',
                   backdropFilter: 'blur(8px)',

@@ -1,38 +1,4 @@
-import { useEffect, useRef } from 'react'
-import object3D from '../../assets/3DObject.svg'
-
 export default function Hero() {
-  const objRef = useRef<HTMLImageElement>(null)
-  let frame = 0
-  let animId: number
-
-  useEffect(() => {
-    const animate = () => {
-      frame++
-      if (objRef.current) {
-        const y = Math.sin(frame * 0.016) * 20
-        const r = Math.sin(frame * 0.010) * 8
-        const s = 1 + Math.sin(frame * 0.013) * 0.025
-        objRef.current.style.transform = `translateY(${y}px) rotate(${r}deg) scale(${s})`
-      }
-      animId = requestAnimationFrame(animate)
-    }
-    animId = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(animId)
-  }, [])
-
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      if (!objRef.current) return
-      const dx = (e.clientX / window.innerWidth - 0.5) * 30
-      const dy = (e.clientY / window.innerHeight - 0.5) * 15
-      objRef.current.style.marginLeft = `${dx}px`
-      objRef.current.style.marginTop = `${dy}px`
-    }
-    window.addEventListener('mousemove', onMove)
-    return () => window.removeEventListener('mousemove', onMove)
-  }, [])
-
   const goTo = (path: string) => {
     window.location.assign(path)
   }
@@ -206,23 +172,7 @@ Open schema · Bundle-aware · On-chain anchored · Public verifiable        </p
         </div>
       </div>
 
-      {/* MASSIVE full bleed 3D object */}
-      <div style={{
-        position: 'absolute',
-        top: '50%', left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '900px', height: '900px',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 0,
-      }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse, rgba(27,79,216,0.25) 0%, rgba(10,30,100,0.1) 45%, transparent 70%)', filter: 'blur(60px)', borderRadius: '50%' }} />
-        <img ref={objRef} src={object3D} alt="" style={{ width: '860px', height: '860px', objectFit: 'contain', filter: 'drop-shadow(0 0 120px rgba(27,79,216,0.7)) drop-shadow(0 0 40px rgba(27,79,216,0.4))', opacity: 0.5, transition: 'margin 0.15s ease-out' }} />
-      </div>
-
-      {/* Gradient overlays for text readability */}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(3,7,15,0.95) 0%, rgba(3,7,15,0.7) 40%, rgba(3,7,15,0.1) 70%, transparent 100%)', zIndex: 1, pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(3,7,15,0.9) 0%, transparent 50%)', zIndex: 1, pointerEvents: 'none' }} />
-
+    
       <style>{`
         @keyframes badgePulse {
           0%, 100% { opacity: 1; transform: scale(1); }

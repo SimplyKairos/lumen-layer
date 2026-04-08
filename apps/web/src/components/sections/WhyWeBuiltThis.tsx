@@ -1,4 +1,3 @@
-import glassOrb from '../../assets/GlassOrb.svg'
 import { getRevealStyle, useScrollReveal } from './ScrollReveal'
 
 const cards = [
@@ -29,23 +28,6 @@ export default function WhyWeBuiltThis() {
 
   return (
     <section id="why" style={{ padding: '80px 46px', position: 'relative', overflow: 'hidden' }}>
-
-      {/* Glass orb — large, left side decorative */}
-      <img
-        src={glassOrb}
-        alt=""
-        style={{
-          position: 'absolute',
-          right: '120px',
-          top: '50px',
-          width: '500px',
-          opacity: 0.25,
-          pointerEvents: 'none',
-          animation: 'orbFloat 7s ease-in-out infinite',
-          filter: 'blur(1px)',
-        }}
-      />
-
       <div
         ref={ref}
         style={{
@@ -60,7 +42,7 @@ export default function WhyWeBuiltThis() {
           fontSize: '25px',
           letterSpacing: '3px',
           textTransform: 'uppercase',
-          color: 'rgba(27,79,216,0.7)',
+          color: 'rgba(255, 255, 255, 0.7)',
           marginBottom: '18px',
         }}>
           The problem

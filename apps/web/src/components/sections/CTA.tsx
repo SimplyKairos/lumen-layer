@@ -32,7 +32,7 @@ export default function CTA() {
         fontSize: '15px',
         letterSpacing: '4px',
         textTransform: 'uppercase',
-        color: 'rgba(27,79,216,0.6)',
+        color: 'rgba(255, 255, 255, 0.6)',
         marginBottom: '24px',
         position: 'relative',
         zIndex: 2,

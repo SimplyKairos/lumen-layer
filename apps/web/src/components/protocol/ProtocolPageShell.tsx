@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import Footer from '../sections/Footer'
 import Navbar from '../sections/Navbar'
-import siteBg from '../../assets/SiteBG.png'
+import siteBg from '../../assets/SiteBG.jpg'
 
 export const protocolPageStyles = {
   contentColumn: {
@@ -90,6 +90,8 @@ export default function ProtocolPageShell({ children }: { children: ReactNode })
         backgroundImage: `url(${siteBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat',
         opacity: 0.5,
         mixBlendMode: 'screen',
       }} />
