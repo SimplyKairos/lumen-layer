@@ -1,8 +1,12 @@
+import { receiptSchema, type LumenReceipt } from './receipt'
+
 export const alphaVaultModes = ['FCFS', 'PRORATA'] as const
 export type AlphaVaultMode = (typeof alphaVaultModes)[number]
 
-export const launchStatuses = ['pending', 'configured', 'active'] as const
+export const launchStatuses = ['pending', 'configured', 'live'] as const
 export type LaunchStatus = (typeof launchStatuses)[number]
+export const launchTradeSides = ['buy', 'sell'] as const
+export type LaunchTradeSide = (typeof launchTradeSides)[number]
 
 export interface LaunchCreateBody {
   tokenName: string
@@ -45,6 +49,49 @@ export interface LaunchListResponse {
   count: number
 }
 
+export interface LaunchTradeBody {
+  txSignature: string
+  bundleId: string
+  walletAddress?: string | null
+  side: LaunchTradeSide
+  amountIn: number
+  minAmountOut: number
+}
+
+export interface LaunchTrade {
+  side: LaunchTradeSide
+  amountIn: number
+  minAmountOut: number
+  walletAddress: string | null
+  executedAt: number
+}
+
+export interface LaunchTradeResponse {
+  launch: LumenLaunch
+  receipt: LumenReceipt
+  trade: LaunchTrade
+}
+
+export interface CreatorRecentLaunch {
+  launchId: string
+  tokenName: string
+  status: LaunchStatus
+  createdAt: number
+  launchWindowSeconds: number
+}
+
+export interface CreatorProfile {
+  walletAddress: string
+  displayName: string | null
+  twitterHandle: string | null
+  verified: boolean
+  launchCount: number
+  receiptCount: number
+  successfulLaunches: number
+  reputationScore: number
+  recentLaunches: CreatorRecentLaunch[]
+}
+
 export interface LaunchRow {
   id: string
   token_name: string
@@ -57,7 +104,7 @@ export interface LaunchRow {
   lock_duration_days: number | null
   max_wallet_cap: number | null
   launch_window_seconds: number
-  status: LaunchStatus
+  status: string
   bundler_alerts: number
   holder_count: number
   alpha_vault_address: string | null
@@ -104,6 +151,15 @@ export const launchParamsSchema = {
   required: ['launchId'],
   properties: {
     launchId: { type: 'string', minLength: 1 },
+  },
+} as const
+
+export const creatorWalletParamsSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['walletAddress'],
+  properties: {
+    walletAddress: { type: 'string', minLength: 1 },
   },
 } as const
 
@@ -169,7 +225,90 @@ export const launchListSchema = {
   },
 } as const
 
+export const launchTradeBodySchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['txSignature', 'bundleId', 'side', 'amountIn', 'minAmountOut'],
+  properties: {
+    txSignature: { type: 'string', minLength: 1 },
+    bundleId: { type: 'string', minLength: 1 },
+    walletAddress: nullableStringSchema,
+    side: { type: 'string', enum: [...launchTradeSides] },
+    amountIn: { type: 'number', exclusiveMinimum: 0 },
+    minAmountOut: { type: 'number', minimum: 0 },
+  },
+} as const
+
+export const launchTradeSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['side', 'amountIn', 'minAmountOut', 'walletAddress', 'executedAt'],
+  properties: {
+    side: { type: 'string', enum: [...launchTradeSides] },
+    amountIn: { type: 'number' },
+    minAmountOut: { type: 'number' },
+    walletAddress: nullableStringSchema,
+    executedAt: { type: 'integer' },
+  },
+} as const
+
+export const launchTradeResponseSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['launch', 'receipt', 'trade'],
+  properties: {
+    launch: launchSchema,
+    receipt: receiptSchema,
+    trade: launchTradeSchema,
+  },
+} as const
+
+export const creatorRecentLaunchSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['launchId', 'tokenName', 'status', 'createdAt', 'launchWindowSeconds'],
+  properties: {
+    launchId: { type: 'string', minLength: 1 },
+    tokenName: { type: 'string', minLength: 1 },
+    status: { type: 'string', enum: [...launchStatuses] },
+    createdAt: { type: 'integer' },
+    launchWindowSeconds: { type: 'integer' },
+  },
+} as const
+
+export const creatorProfileSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'walletAddress',
+    'displayName',
+    'twitterHandle',
+    'verified',
+    'launchCount',
+    'receiptCount',
+    'successfulLaunches',
+    'reputationScore',
+    'recentLaunches',
+  ],
+  properties: {
+    walletAddress: { type: 'string', minLength: 1 },
+    displayName: nullableStringSchema,
+    twitterHandle: nullableStringSchema,
+    verified: { type: 'boolean' },
+    launchCount: { type: 'integer' },
+    receiptCount: { type: 'integer' },
+    successfulLaunches: { type: 'integer' },
+    reputationScore: { type: 'number' },
+    recentLaunches: {
+      type: 'array',
+      items: creatorRecentLaunchSchema,
+    },
+  },
+} as const
+
 export function mapLaunchRowToLaunch(row: LaunchRow): LumenLaunch {
+  const normalizedStatus = row.status === 'active' ? 'live' : row.status
+
   return {
     launchId: row.id,
     tokenName: row.token_name,
@@ -182,7 +321,7 @@ export function mapLaunchRowToLaunch(row: LaunchRow): LumenLaunch {
     lockDurationDays: row.lock_duration_days ?? 0,
     maxWalletCap: row.max_wallet_cap,
     launchWindowSeconds: row.launch_window_seconds,
-    status: row.status ?? 'configured',
+    status: (normalizedStatus as LaunchStatus) ?? 'configured',
     alphaVaultMode: row.alpha_vault_mode ?? 'FCFS',
     alphaVaultAddress: row.alpha_vault_address,
     alphaVaultActivationAt: row.alpha_vault_activation_at,
@@ -191,5 +330,17 @@ export function mapLaunchRowToLaunch(row: LaunchRow): LumenLaunch {
     activatedAt: row.activated_at,
     createdAt: row.created_at,
     launchedAt: row.launched_at,
+  }
+}
+
+export function mapLaunchToCreatorRecentLaunch(
+  launch: LumenLaunch
+): CreatorRecentLaunch {
+  return {
+    launchId: launch.launchId,
+    tokenName: launch.tokenName,
+    status: launch.status,
+    createdAt: launch.createdAt,
+    launchWindowSeconds: launch.launchWindowSeconds,
   }
 }

@@ -26,18 +26,29 @@ import {
   webhookSubscriptionParamsSchema,
 } from './webhook'
 import {
+  activateLaunch,
   createLaunch,
+  getCreatorProfile,
   getLaunchById,
   listLaunches,
   type LaunchServiceDependencies,
 } from './launch-service'
 import {
+  creatorProfileSchema,
+  creatorWalletParamsSchema,
   launchCreateBodySchema,
   launchListSchema,
+  launchTradeBodySchema,
+  launchTradeResponseSchema,
   launchParamsSchema,
   launchSchema,
   type LaunchCreateBody,
+  type LaunchTradeBody,
 } from './launch'
+import {
+  createLaunchTradeReceipt,
+  type LaunchTradeServiceDependencies,
+} from './launch-trade-service'
 import 'dotenv/config'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
@@ -98,7 +109,8 @@ export interface BuildServerDependencies
     StampServiceDependencies,
     VerificationDependencies,
     WebhookServiceDependencies,
-    LaunchServiceDependencies {}
+    LaunchServiceDependencies,
+    LaunchTradeServiceDependencies {}
 
 export function buildServer(deps: BuildServerDependencies = {}) {
   const server = Fastify({ logger: true })
@@ -297,10 +309,100 @@ export function buildServer(deps: BuildServerDependencies = {}) {
     }
   })
 
+  // POST /api/v1/launches/:launchId/activate — move a configured launch into live DBC state
+  server.post('/api/v1/launches/:launchId/activate', {
+    schema: {
+      params: launchParamsSchema,
+      response: {
+        200: launchSchema,
+        404: apiErrorSchema,
+        500: apiErrorSchema,
+      },
+    },
+  }, async (request, reply) => {
+    const { launchId } = request.params as { launchId: string }
+
+    try {
+      const launch = await activateLaunch(launchId, deps)
+
+      if (!launch) {
+        return reply.code(404).send({ error: 'Launch not found' })
+      }
+
+      return reply.send(launch)
+    } catch (err) {
+      server.log.error(err)
+      return reply.code(500).send({ error: 'Failed to activate launch' })
+    }
+  })
+
+  // POST /api/v1/launches/:launchId/trades — record a live launch trade and issue a canonical receipt
+  server.post('/api/v1/launches/:launchId/trades', {
+    schema: {
+      params: launchParamsSchema,
+      body: launchTradeBodySchema,
+      response: {
+        200: launchTradeResponseSchema,
+        201: launchTradeResponseSchema,
+        404: apiErrorSchema,
+        409: apiErrorSchema,
+        422: stampErrorSchema,
+        500: apiErrorSchema,
+        503: stampErrorSchema,
+      },
+    },
+  }, async (request, reply) => {
+    const { launchId } = request.params as { launchId: string }
+
+    try {
+      const tradeResult = await createLaunchTradeReceipt(
+        {
+          launchId,
+          ...(request.body as LaunchTradeBody),
+        },
+        deps
+      )
+
+      if (tradeResult.ok === false) {
+        return reply.code(tradeResult.statusCode).send({
+          error: tradeResult.error,
+          retryable: tradeResult.retryable,
+        })
+      }
+
+      return reply.code(tradeResult.duplicate ? 200 : 201).send(tradeResult.response)
+    } catch (err) {
+      server.log.error(err)
+      return reply.code(500).send({ error: 'Failed to execute launch trade' })
+    }
+  })
+
   // CREATOR ROUTES
   // GET /api/v1/creators/:walletAddress — get creator profile
-  server.get('/api/v1/creators/:walletAddress', async (request, reply) => {
-    return reply.code(501).send({ error: 'not implemented yet' })
+  server.get('/api/v1/creators/:walletAddress', {
+    schema: {
+      params: creatorWalletParamsSchema,
+      response: {
+        200: creatorProfileSchema,
+        404: apiErrorSchema,
+        500: apiErrorSchema,
+      },
+    },
+  }, async (request, reply) => {
+    const { walletAddress } = request.params as { walletAddress: string }
+
+    try {
+      const creator = getCreatorProfile(walletAddress)
+
+      if (!creator) {
+        return reply.code(404).send({ error: 'Creator not found' })
+      }
+
+      return reply.send(creator)
+    } catch (err) {
+      server.log.error(err)
+      return reply.code(500).send({ error: 'Failed to fetch creator profile' })
+    }
   })
 
   // WEBHOOK ROUTE
