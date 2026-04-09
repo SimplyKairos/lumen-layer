@@ -22,14 +22,26 @@ const receiptFieldKeys = [
   'createdAt',
 ] as const
 
+const launchActivateRouteTemplate = '/api/v1/launches/:launchId/activate'
+const launchTradeRouteTemplate = '/api/v1/launches/:launchId/trades'
+
 async function testFullFlow() {
   console.log('🔵 Starting Lumen Protocol test flow...\n')
-  const txSignature = `test-sig-${Date.now()}`
-  const bundleId = `test-bundle-${Date.now()}`
-  const mismatchTxSignature = `test-sig-mismatch-${Date.now()}`
-  const mismatchBundleId = `test-bundle-mismatch-${Date.now()}`
+  const testRunId = Date.now()
+  const txSignature = `test-sig-${testRunId}`
+  const bundleId = `test-bundle-${testRunId}`
+  const mismatchTxSignature = `test-sig-mismatch-${testRunId}`
+  const mismatchBundleId = `test-bundle-mismatch-${testRunId}`
+  const launchTradeTxSignature = `launch-trade-sig-${testRunId}`
+  const launchTradeBundleId = `launch-trade-bundle-${testRunId}`
+  const creatorWallet = `CreatorWallet-${testRunId}`
   const memoTransactions = new Map<string, MemoTransactionLookupResult>()
   const sentWebhookRequests: WebhookSendRequest[] = []
+  const bundleFixtures = new Map<string, { slot: number; transactions: string[] }>([
+    [bundleId, { slot: 324901882, transactions: [txSignature] }],
+    [mismatchBundleId, { slot: 324901883, transactions: [mismatchTxSignature] }],
+    [launchTradeBundleId, { slot: 324901990, transactions: [launchTradeTxSignature] }],
+  ])
   let anchorCallCount = 0
 
   db.prepare('DELETE FROM webhook_deliveries').run()
@@ -40,15 +52,15 @@ async function testFullFlow() {
       status: 'ok',
       data: {
         bundleId: requestedBundleId,
-        slot: 324901882,
+        slot: bundleFixtures.get(requestedBundleId)?.slot ?? 324901882,
         confirmationStatus: 'confirmed',
-        transactions: [txSignature, mismatchTxSignature],
+        transactions: bundleFixtures.get(requestedBundleId)?.transactions ?? [txSignature],
       },
     }),
     anchorReceiptHash: async (receiptHash): Promise<AnchorReceiptHashResult> => {
       anchorCallCount += 1
       const memoSignature = `memo-sig-${anchorCallCount}`
-      const memoText = anchorCallCount === 1 ? receiptHash : `mismatch-${receiptHash}`
+      const memoText = anchorCallCount === 2 ? `mismatch-${receiptHash}` : receiptHash
 
       memoTransactions.set(memoSignature, {
         status: 'ok',
@@ -83,6 +95,18 @@ async function testFullFlow() {
         responseStatus: 202,
       }
     },
+    activateLaunchOnDbc: async (input) => ({
+      dbcConfigAddress: `dbc-config-${input.launchId.slice(0, 8)}`,
+      dbcPoolAddress: `dbc-pool-${input.launchId.slice(0, 8)}`,
+      activatedAt: 324902100000,
+    }),
+    executeLaunchTrade: async (input) => ({
+      side: input.side,
+      amountIn: input.amountIn,
+      minAmountOut: input.minAmountOut,
+      walletAddress: input.walletAddress ?? null,
+      executedAt: 324902100500,
+    }),
   })
 
   try {
@@ -340,6 +364,126 @@ async function testFullFlow() {
     }
 
     console.log(`✅ Found ${list.count} receipts in DB`)
+    console.log()
+
+    console.log('9. Creating a launch...')
+    const launchRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/launch',
+      payload: {
+        tokenName: 'Launch Flow Token',
+        tokenSymbol: 'LFT',
+        creatorWallet,
+        launchWindowSeconds: 120,
+        alphaVaultMode: 'FCFS',
+        description: 'Launch flow verification',
+      },
+    })
+    const launch = launchRes.json() as any
+
+    if (
+      launchRes.statusCode !== 201 ||
+      !launch.launchId ||
+      launch.status !== 'configured' ||
+      !launch.alphaVaultAddress
+    ) {
+      console.error('❌ Launch creation failed:', launch)
+      process.exit(1)
+    }
+
+    console.log('✅ Launch created:', launch.launchId)
+    console.log()
+
+    console.log('10. Activating the launch...')
+    const activateRes = await app.inject({
+      method: 'POST',
+      url: launchActivateRouteTemplate.replace(':launchId', launch.launchId),
+    })
+    const activatedLaunch = activateRes.json() as any
+
+    if (
+      activateRes.statusCode !== 200 ||
+      activatedLaunch.status !== 'live' ||
+      !activatedLaunch.dbcConfigAddress ||
+      !activatedLaunch.dbcPoolAddress
+    ) {
+      console.error('❌ Launch activation failed:', activatedLaunch)
+      process.exit(1)
+    }
+
+    console.log('✅ Launch activated on DBC seam')
+    console.log()
+
+    console.log('11. Trading the live launch and stamping a linked receipt...')
+    const launchTradeOffset = sentWebhookRequests.length
+    const launchTradeRes = await app.inject({
+      method: 'POST',
+      url: launchTradeRouteTemplate.replace(':launchId', launch.launchId),
+      payload: {
+        txSignature: launchTradeTxSignature,
+        bundleId: launchTradeBundleId,
+        walletAddress: 'LaunchTraderWallet123',
+        side: 'buy',
+        amountIn: 25,
+        minAmountOut: 20,
+      },
+    })
+    const launchTrade = launchTradeRes.json() as any
+
+    if (
+      launchTradeRes.statusCode !== 201 ||
+      launchTrade.launch.launchId !== launch.launchId ||
+      launchTrade.launch.status !== 'live' ||
+      !launchTrade.receipt.receiptId ||
+      launchTrade.trade.side !== 'buy'
+    ) {
+      console.error('❌ Launch trade failed:', launchTrade)
+      process.exit(1)
+    }
+
+    const linkedReceiptRow = db.prepare(`
+      SELECT launch_id
+      FROM receipts
+      WHERE id = ?
+    `).get(launchTrade.receipt.receiptId) as { launch_id: string | null } | undefined
+
+    if (!linkedReceiptRow || linkedReceiptRow.launch_id !== launch.launchId) {
+      console.error('❌ Launch receipt linkage failed:', linkedReceiptRow)
+      process.exit(1)
+    }
+
+    const launchTradeDeliveries = sentWebhookRequests.slice(launchTradeOffset)
+
+    if (launchTradeDeliveries.length !== 2) {
+      console.error('❌ Launch trade webhook fanout failed:', launchTradeDeliveries)
+      process.exit(1)
+    }
+
+    console.log('✅ Live launch trade issued a linked canonical receipt')
+    console.log()
+
+    console.log('12. Fetching creator trust profile...')
+    const creatorProfileRes = await app.inject({
+      method: 'GET',
+      url: `/api/v1/creators/${creatorWallet}`,
+    })
+    const creatorProfile = creatorProfileRes.json() as any
+
+    if (
+      creatorProfileRes.statusCode !== 200 ||
+      creatorProfile.walletAddress !== creatorWallet ||
+      creatorProfile.launchCount !== 1 ||
+      creatorProfile.receiptCount !== 1 ||
+      creatorProfile.successfulLaunches !== 1 ||
+      !Array.isArray(creatorProfile.recentLaunches) ||
+      creatorProfile.recentLaunches[0]?.launchId !== launch.launchId ||
+      creatorProfile.recentLaunches[0]?.launchWindowSeconds !== 120
+    ) {
+      console.error('❌ Creator profile failed:', creatorProfile)
+      process.exit(1)
+    }
+
+    console.log('✅ Creator profile shows launch history and receipt count')
     console.log()
 
     console.log('🟢 All tests passed. Lumen Protocol is working.\n')
