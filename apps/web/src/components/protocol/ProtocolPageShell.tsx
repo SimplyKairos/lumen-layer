@@ -11,77 +11,82 @@ export const protocolPageStyles = {
     gap: '32px',
   } satisfies CSSProperties,
   panel: {
-    background: 'rgba(8,18,35,0.74)',
+    background: 'rgba(255,255,255,0.03)',
     border: '0.5px solid rgba(255,255,255,0.08)',
-    borderRadius: '28px',
-    backdropFilter: 'blur(20px)',
-    boxShadow: '0 22px 60px rgba(0,0,0,0.24)',
+    borderRadius: '24px',
+    backdropFilter: 'blur(24px)',
+    WebkitBackdropFilter: 'blur(24px)',
+    boxShadow: '0 4px 40px rgba(0,0,0,0.3)',
   } satisfies CSSProperties,
   eyebrow: {
     fontFamily: "'DM Mono', monospace",
-    fontSize: '12px',
-    letterSpacing: '1.2px',
+    fontSize: '10px',
+    letterSpacing: '2.5px',
     textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.56)',
+    color: 'rgba(27,79,216,0.8)',
   } satisfies CSSProperties,
   displayTitle: {
     fontFamily: "'Outfit', sans-serif",
     fontSize: '44px',
-    fontWeight: 700,
+    fontWeight: 800,
     lineHeight: 1,
     letterSpacing: '-1.6px',
     color: '#fff',
   } satisfies CSSProperties,
   sectionTitle: {
     fontFamily: "'Outfit', sans-serif",
-    fontSize: '20px',
+    fontSize: '18px',
     fontWeight: 700,
     lineHeight: 1.3,
     color: '#fff',
   } satisfies CSSProperties,
   body: {
     fontFamily: "'Outfit', sans-serif",
-    fontSize: '16px',
-    fontWeight: 400,
-    lineHeight: 1.6,
-    color: 'rgba(255,255,255,0.68)',
+    fontSize: '15px',
+    fontWeight: 300,
+    lineHeight: 1.7,
+    color: 'rgba(255,255,255,0.4)',
   } satisfies CSSProperties,
   label: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '14px',
+    fontFamily: "'DM Mono', monospace",
+    fontSize: '9px',
     fontWeight: 400,
     lineHeight: 1.4,
-    color: 'rgba(255,255,255,0.58)',
+    color: 'rgba(255,255,255,0.22)',
+    letterSpacing: '1.5px',
+    textTransform: 'uppercase',
   } satisfies CSSProperties,
   mono: {
-    fontFamily: "'DM Mono', monospace",
-    fontSize: '13px',
-    fontWeight: 400,
-    lineHeight: 1.6,
-    color: '#fff',
-    wordBreak: 'break-word',
-  } satisfies CSSProperties,
-  monoCompact: {
     fontFamily: "'DM Mono', monospace",
     fontSize: '12px',
     fontWeight: 400,
     lineHeight: 1.6,
-    color: '#fff',
+    color: 'rgba(255,255,255,0.55)',
+    wordBreak: 'break-word',
+  } satisfies CSSProperties,
+  monoCompact: {
+    fontFamily: "'DM Mono', monospace",
+    fontSize: '11px',
+    fontWeight: 400,
+    lineHeight: 1.6,
+    color: 'rgba(255,255,255,0.45)',
     wordBreak: 'break-word',
   } satisfies CSSProperties,
   link: {
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: '14px',
+    fontFamily: "'DM Mono', monospace",
+    fontSize: '11px',
     fontWeight: 400,
     lineHeight: 1.4,
-    color: '#fff',
+    color: 'rgba(74,158,255,0.7)',
     textDecoration: 'none',
+    letterSpacing: '0.5px',
   } satisfies CSSProperties,
 } as const
 
 export default function ProtocolPageShell({ children }: { children: ReactNode }) {
   return (
-    <div style={{ background: '#03070f', minHeight: '100vh', overflowX: 'hidden', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', overflowX: 'hidden', position: 'relative' }}>
+      {/* Background image — full site */}
       <div style={{
         position: 'fixed',
         inset: 0,
@@ -92,17 +97,18 @@ export default function ProtocolPageShell({ children }: { children: ReactNode })
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',
         backgroundRepeat: 'no-repeat',
-        opacity: 0.5,
-        mixBlendMode: 'screen',
       }} />
+
+      {/* Dark overlay — light enough to keep background visible */}
       <div style={{
         position: 'fixed',
         inset: 0,
         zIndex: 0,
         pointerEvents: 'none',
-        background: 'rgba(3,7,15,0.9)',
+        background: 'rgba(3,7,15,0.72)',
       }} />
 
+      {/* Content */}
       <div style={{ position: 'relative', zIndex: 1 }}>
         <Navbar />
 
