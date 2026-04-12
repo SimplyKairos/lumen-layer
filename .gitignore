@@ -7,3 +7,6 @@ apps/api/data/*.db
 apps/api/logs/*.log.planning/
 .planning/
 AGENTS.md
+.claude
+.codex
+.agents/skills
