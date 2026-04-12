@@ -74,6 +74,30 @@ export const receiptSchema = {
   },
 } as const
 
+export const receiptListItemSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'receiptId', 'txSignature', 'bundleId', 'slot', 'confirmationStatus',
+    'receiptHash', 'onChainMemo', 'attestationLevel', 'walletAddress', 'verified',
+    'createdAt', 'verificationStatus',
+  ],
+  properties: {
+    receiptId: { type: 'string', minLength: 1 },
+    txSignature: { type: 'string', minLength: 1 },
+    bundleId: { type: 'string', minLength: 1 },
+    slot: { type: 'integer' },
+    confirmationStatus: { type: 'string', minLength: 1 },
+    receiptHash: { type: 'string', minLength: 1 },
+    onChainMemo: { type: ['string', 'null'] },
+    attestationLevel: { type: 'string', enum: [...receiptAttestationLevels] },
+    walletAddress: { type: ['string', 'null'] },
+    verified: { type: 'boolean' },
+    createdAt: { type: 'integer' },
+    verificationStatus: { type: 'string', enum: [...receiptVerificationStatuses] },
+  },
+} as const
+
 export const receiptListSchema = {
   type: 'object',
   additionalProperties: false,
@@ -81,7 +105,7 @@ export const receiptListSchema = {
   properties: {
     receipts: {
       type: 'array',
-      items: receiptSchema,
+      items: receiptListItemSchema,
     },
     count: { type: 'integer' },
   },
@@ -122,6 +146,11 @@ export function buildReceipt(
     verified: false,
     createdAt: Date.now(),
   }
+}
+
+export function deriveVerificationStatus(row: ReceiptRow): ReceiptVerificationStatus {
+  if (row.on_chain_memo && row.verified) return 'VERIFIED'
+  return 'UNANCHORED'
 }
 
 export function mapReceiptRowToReceipt(row: ReceiptRow): LumenReceipt {

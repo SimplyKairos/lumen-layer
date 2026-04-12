@@ -3,21 +3,13 @@ import ProtocolPageShell, { protocolPageStyles } from '../components/protocol/Pr
 import StatusBadge from '../components/protocol/StatusBadge'
 import {
   fetchRecentReceipts,
-  fetchVerificationResult,
   normalizeProtocolError,
-  type ProtocolReceipt,
-  type VerificationStatus,
+  type ReceiptListItem,
 } from '../lib/protocol-api'
 import { formatReceiptTime, truncateReceiptValue } from '../lib/receipt-format'
 
-type ExplorerStatus = VerificationStatus | 'Status unavailable'
-
-interface ExplorerRow extends ProtocolReceipt {
-  verificationStatus: ExplorerStatus
-}
-
 export default function ReceiptsPage() {
-  const [rows, setRows] = useState<ExplorerRow[]>([])
+  const [rows, setRows] = useState<ReceiptListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const viewState = loading ? 'loading' : error ? 'error' : rows.length > 0 ? 'success' : 'empty'
@@ -31,25 +23,12 @@ export default function ReceiptsPage() {
 
       try {
         const { receipts } = await fetchRecentReceipts()
-        const statuses = await Promise.all(
-          receipts.map(async (receipt) => {
-            try {
-              const verification = await fetchVerificationResult(receipt.receiptId)
-              return verification.verificationStatus
-            } catch {
-              return 'Status unavailable' as const
-            }
-          })
-        )
 
         if (!active) {
           return
         }
 
-        setRows(receipts.map((receipt, index) => ({
-          ...receipt,
-          verificationStatus: statuses[index],
-        })))
+        setRows(receipts)
       } catch (err) {
         if (!active) {
           return

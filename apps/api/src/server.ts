@@ -1,5 +1,6 @@
 import { db } from './db'
 import {
+  deriveVerificationStatus,
   getReceiptInsertParams,
   mapReceiptRowToReceipt,
   receiptListSchema,
@@ -231,13 +232,16 @@ export function buildServer(deps: BuildServerDependencies = {}) {
     },
   }, async (request, reply) => {
     try {
-      const receipts = db.prepare(
+      const rows = db.prepare(
         'SELECT * FROM receipts ORDER BY created_at DESC LIMIT 50'
       ).all() as ReceiptRow[]
 
       return reply.send({
-        receipts: receipts.map(mapReceiptRowToReceipt),
-        count: receipts.length,
+        receipts: rows.map(row => ({
+          ...mapReceiptRowToReceipt(row),
+          verificationStatus: deriveVerificationStatus(row),
+        })),
+        count: rows.length,
       })
     } catch (err) {
       server.log.error(err)

@@ -116,6 +116,21 @@ db.exec(`
 `)
 
 db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_receipts_created_at
+  ON receipts (created_at DESC)
+`)
+
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_receipts_launch_id
+  ON receipts (launch_id)
+`)
+
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_launches_creator_wallet
+  ON launches (creator_wallet)
+`)
+
+db.exec(`
   CREATE INDEX IF NOT EXISTS idx_webhook_subscriptions_event_active
   ON webhook_subscriptions (event_type, active)
 `)

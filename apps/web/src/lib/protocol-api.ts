@@ -29,8 +29,12 @@ export interface VerificationResult extends ProtocolReceipt {
   error?: string
 }
 
+export interface ReceiptListItem extends ProtocolReceipt {
+  verificationStatus: VerificationStatus
+}
+
 export interface ReceiptListResponse {
-  receipts: ProtocolReceipt[]
+  receipts: ReceiptListItem[]
   count: number
 }
 
